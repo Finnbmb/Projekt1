@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Debug Interface</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        button { padding: 10px; margin: 5px; background: #007bff; color: white; border: none; cursor: pointer; }
+        .result { margin-top: 10px; padding: 10px; background: #f8f9fa; border: 1px solid #dee2e6; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h1>🔧 API Debug Interface</h1>
+    
+    <div class="test-section">
+        <h3>1. Basic Connectivity Tests</h3>
+        <button onclick="testCalendarController()">Test Calendar Controller</button>
+        <button onclick="testAppointments()">Test Appointments</button>
+        <div id="connectivityResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>2. Calendar Endpoints</h3>
+        <button onclick="testToday()">Test Today</button>
+        <button onclick="testUpcoming()">Test Upcoming</button>
+        <button onclick="testThisWeek()">Test This Week</button>
+        <button onclick="testThisMonth()">Test This Month</button>
+        <div id="calendarResult" class="result"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api/v1';
+
+        async function testCalendarController() {
+            try {
+                const response = await fetch(`${API_BASE}/calendar/test`);
+                const text = await response.text();
+                showResult('connectivityResult', `✅ Calendar Controller: ${text}`, 'success');
+            } catch (error) {
+                showResult('connectivityResult', `❌ Calendar Controller Fehler: ${error.message}`, 'error');
+            }
+        }
+
+        async function testAppointments() {
+            try {
+                const response = await fetch(`${API_BASE}/appointments`);
+                const data = await response.json();
+                showResult('connectivityResult', `✅ Appointments: ${data.totalElements} Termine gefunden`, 'success');
+            } catch (error) {
+                showResult('connectivityResult', `❌ Appointments Fehler: ${error.message}`, 'error');
+            }
+        }
+
+        async function testToday() {
+            try {
+                const response = await fetch(`${API_BASE}/calendar/today`);
+                console.log('Today response status:', response.status);
+                const data = await response.json();
+                console.log('Today data:', data);
+                showResult('calendarResult', `✅ Today: ${data.length} Termine heute`, 'success');
+            } catch (error) {
+                console.error('Today error:', error);
+                showResult('calendarResult', `❌ Today Fehler: ${error.message}`, 'error');
+            }
+        }
+
+        async function testUpcoming() {
+            try {
+                const response = await fetch(`${API_BASE}/calendar/upcoming`);
+                console.log('Upcoming response status:', response.status);
+                const data = await response.json();
+                console.log('Upcoming data:', data);
+                showResult('calendarResult', `✅ Upcoming: ${data.length} kommende Termine`, 'success');
+            } catch (error) {
+                console.error('Upcoming error:', error);
+                showResult('calendarResult', `❌ Upcoming Fehler: ${error.message}`, 'error');
+            }
+        }
+
+        async function testThisWeek() {
+            try {
+                const response = await fetch(`${API_BASE}/calendar/this-week`);
+                console.log('This week response status:', response.status);
+                const data = await response.json();
+                console.log('This week data:', data);
+                const totalAppointments = Object.values(data).flat().length;
+                showResult('calendarResult', `✅ This Week: ${totalAppointments} Termine diese Woche`, 'success');
+            } catch (error) {
+                console.error('This week error:', error);
+                showResult('calendarResult', `❌ This Week Fehler: ${error.message}`, 'error');
+            }
+        }
+
+        async function testThisMonth() {
+            try {
+                const response = await fetch(`${API_BASE}/calendar/this-month`);
+                console.log('This month response status:', response.status);
+                const data = await response.json();
+                console.log('This month data:', data);
+                const totalAppointments = Object.values(data).flat().length;
+                showResult('calendarResult', `✅ This Month: ${totalAppointments} Termine diesen Monat`, 'success');
+            } catch (error) {
+                console.error('This month error:', error);
+                showResult('calendarResult', `❌ This Month Fehler: ${error.message}`, 'error');
+            }
+        }
+
+        function showResult(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<p class="${type}">${message}</p>`;
+        }
+
+        // Browser Console Info
+        console.log('API Debug Interface geladen');
+        console.log('API Base URL:', API_BASE);
+        console.log('Öffnen Sie die Browser-Entwicklertools (F12) für detaillierte Logs');
+    </script>
+</body>
+</html>

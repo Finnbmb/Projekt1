@@ -1,0 +1,13 @@
+C:\GitHub\Projekt 1\Projekt 1\Projekt1\src\main\java\de\swtp1\terminkalender\entity\Appointment.java
+C:\GitHub\Projekt 1\Projekt 1\Projekt1\src\main\java\de\swtp1\terminkalender\entity\User.java
+C:\GitHub\Projekt 1\Projekt 1\Projekt1\src\main\java\de\swtp1\terminkalender\repository\UserRepository.java
+C:\GitHub\Projekt 1\Projekt 1\Projekt1\src\main\java\de\swtp1\terminkalender\TerminkalenderApplication.java
+C:\GitHub\Projekt 1\Projekt 1\Projekt1\src\main\java\de\swtp1\terminkalender\dto\AppointmentRequestDto.java
+C:\GitHub\Projekt 1\Projekt 1\Projekt1\src\main\java\de\swtp1\terminkalender\service\CalendarService.java
+C:\GitHub\Projekt 1\Projekt 1\Projekt1\src\main\java\de\swtp1\terminkalender\repository\AppointmentRepository.java
+C:\GitHub\Projekt 1\Projekt 1\Projekt1\src\main\java\de\swtp1\terminkalender\service\AppointmentService.java
+C:\GitHub\Projekt 1\Projekt 1\Projekt1\src\main\java\de\swtp1\terminkalender\config\DataInitializer.java
+C:\GitHub\Projekt 1\Projekt 1\Projekt1\src\main\java\de\swtp1\terminkalender\config\CorsConfig.java
+C:\GitHub\Projekt 1\Projekt 1\Projekt1\src\main\java\de\swtp1\terminkalender\controller\AppointmentController.java
+C:\GitHub\Projekt 1\Projekt 1\Projekt1\src\main\java\de\swtp1\terminkalender\dto\AppointmentResponseDto.java
+C:\GitHub\Projekt 1\Projekt 1\Projekt1\src\main\java\de\swtp1\terminkalender\controller\CalendarController.java
