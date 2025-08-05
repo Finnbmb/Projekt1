@@ -4,11 +4,13 @@ import de.swtp1.terminkalender.entity.Appointment;
 import de.swtp1.terminkalender.entity.User;
 import de.swtp1.terminkalender.repository.AppointmentRepository;
 import de.swtp1.terminkalender.repository.UserRepository;
+import de.swtp1.terminkalender.service.HolidayService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.time.LocalDateTime;
+import java.time.Year;
 
 /**
  * Datenbank-Initialisierung mit Testdaten
@@ -19,19 +21,30 @@ public class DataInitializer {
 
     @Bean
     public CommandLineRunner initData(UserRepository userRepository, 
-                                    AppointmentRepository appointmentRepository) {
+                                    AppointmentRepository appointmentRepository,
+                                    HolidayService holidayService) {
         return args -> {
-            // Test-Benutzer erstellen
+            // Initialisiere Feiertage für aktuelles Jahr
+            int currentYear = Year.now().getValue();
+            holidayService.initializeGermanHolidays(currentYear);
+            
+            // Test-Benutzer erstellen mit erweiterten Feldern
             User testUser = new User("testuser", "test@example.com", "Test Benutzer");
+            testUser.setFederalState("NW"); // Nordrhein-Westfalen
+            testUser.setDefaultReminderMinutes(15);
+            testUser.setEmailNotifications(true);
             testUser = userRepository.save(testUser);
             
             User adminUser = new User("admin", "admin@example.com", "Admin Benutzer");
+            adminUser.setFederalState("BY"); // Bayern
+            adminUser.setRole(User.UserRole.ADMIN);
+            adminUser.setDefaultReminderMinutes(30);
             adminUser = userRepository.save(adminUser);
 
-            // Test-Termine erstellen
+            // Test-Termine mit erweiterten Feldern erstellen
             LocalDateTime now = LocalDateTime.now();
             
-            // Heutiger Termin
+            // Heutiger Termin - Hohe Priorität
             Appointment meeting1 = new Appointment(
                 "Team Meeting",
                 "Wöchentliches Team-Sync Meeting",
@@ -40,9 +53,13 @@ public class DataInitializer {
                 "Konferenzraum A",
                 testUser.getId()
             );
+            meeting1.setPriority(Appointment.Priority.HIGH);
+            meeting1.setCategory("Meeting");
+            meeting1.setColorCode("#ff6b6b");
+            meeting1.setReminderMinutes(15);
             appointmentRepository.save(meeting1);
 
-            // Morgen Termin
+            // Morgen Termin - Dringend
             Appointment meeting2 = new Appointment(
                 "Kundenpräsentation",
                 "Präsentation der neuen Features für Kunde XYZ",
@@ -51,6 +68,10 @@ public class DataInitializer {
                 "Online - Teams",
                 testUser.getId()
             );
+            meeting2.setPriority(Appointment.Priority.URGENT);
+            meeting2.setCategory("Kunde");
+            meeting2.setColorCode("#4ecdc4");
+            meeting2.setReminderMinutes(30);
             appointmentRepository.save(meeting2);
 
             // Nächste Woche Termin
@@ -62,6 +83,10 @@ public class DataInitializer {
                 "Entwicklerbereich",
                 adminUser.getId()
             );
+            meeting3.setPriority(Appointment.Priority.MEDIUM);
+            meeting3.setCategory("Entwicklung");
+            meeting3.setColorCode("#45b7d1");
+            meeting3.setReminderMinutes(10);
             appointmentRepository.save(meeting3);
 
             // Workshop
@@ -73,6 +98,10 @@ public class DataInitializer {
                 "Schulungsraum 1",
                 testUser.getId()
             );
+            workshop.setPriority(Appointment.Priority.LOW);
+            workshop.setCategory("Weiterbildung");
+            workshop.setColorCode("#96ceb4");
+            workshop.setReminderMinutes(60);
             appointmentRepository.save(workshop);
 
             System.out.println("✅ Testdaten erfolgreich geladen:");

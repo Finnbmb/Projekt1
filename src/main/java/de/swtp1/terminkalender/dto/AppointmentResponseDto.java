@@ -1,6 +1,7 @@
 package de.swtp1.terminkalender.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import de.swtp1.terminkalender.entity.Appointment;
 
 import java.time.LocalDateTime;
 
@@ -22,6 +23,14 @@ public class AppointmentResponseDto {
 
     private String location;
     private Long userId;
+
+    // Neue Felder für erweiterte Funktionen
+    private Appointment.Priority priority;
+    private Integer reminderMinutes;
+    private boolean isRecurring;
+    private Appointment.RecurrenceType recurrenceType;
+    private String category;
+    private String colorCode;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime createdAt;
@@ -115,6 +124,55 @@ public class AppointmentResponseDto {
 
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
+    }
+
+    // Getter und Setter für neue Felder
+    public Appointment.Priority getPriority() {
+        return priority;
+    }
+
+    public void setPriority(Appointment.Priority priority) {
+        this.priority = priority;
+    }
+
+    public Integer getReminderMinutes() {
+        return reminderMinutes;
+    }
+
+    public void setReminderMinutes(Integer reminderMinutes) {
+        this.reminderMinutes = reminderMinutes;
+    }
+
+    public boolean isRecurring() {
+        return isRecurring;
+    }
+
+    public void setRecurring(boolean recurring) {
+        isRecurring = recurring;
+    }
+
+    public Appointment.RecurrenceType getRecurrenceType() {
+        return recurrenceType;
+    }
+
+    public void setRecurrenceType(Appointment.RecurrenceType recurrenceType) {
+        this.recurrenceType = recurrenceType;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public String getColorCode() {
+        return colorCode;
+    }
+
+    public void setColorCode(String colorCode) {
+        this.colorCode = colorCode;
     }
 
     public void setUpdatedAt(LocalDateTime updatedAt) {

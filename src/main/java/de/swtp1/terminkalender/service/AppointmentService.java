@@ -100,6 +100,18 @@ public class AppointmentService {
     }
 
     /**
+     * Findet Termine in einem Datumsbereich
+     */
+    @Transactional(readOnly = true)
+    public Page<AppointmentResponseDto> findAppointmentsByDateRange(LocalDate startDate, LocalDate endDate, Pageable pageable) {
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
+        
+        Page<Appointment> appointments = appointmentRepository.findByStartDateTimeBetween(startDateTime, endDateTime, pageable);
+        return appointments.map(this::convertToResponseDto);
+    }
+
+    /**
      * Aktualisiert einen Termin
      */
     public AppointmentResponseDto updateAppointment(Long id, AppointmentRequestDto requestDto) {
@@ -167,7 +179,7 @@ public class AppointmentService {
     }
 
     private Appointment convertToEntity(AppointmentRequestDto requestDto) {
-        return new Appointment(
+        Appointment appointment = new Appointment(
                 requestDto.getTitle(),
                 requestDto.getDescription(),
                 requestDto.getStartDateTime(),
@@ -175,6 +187,16 @@ public class AppointmentService {
                 requestDto.getLocation(),
                 requestDto.getUserId()
         );
+        
+        // Setze erweiterte Felder
+        appointment.setPriority(requestDto.getPriority());
+        appointment.setReminderMinutes(requestDto.getReminderMinutes());
+        appointment.setRecurring(requestDto.isRecurring());
+        appointment.setRecurrenceType(requestDto.getRecurrenceType());
+        appointment.setCategory(requestDto.getCategory());
+        appointment.setColorCode(requestDto.getColorCode());
+        
+        return appointment;
     }
 
     private void updateAppointmentFromDto(Appointment appointment, AppointmentRequestDto requestDto) {
@@ -184,10 +206,18 @@ public class AppointmentService {
         appointment.setEndDateTime(requestDto.getEndDateTime());
         appointment.setLocation(requestDto.getLocation());
         appointment.setUserId(requestDto.getUserId());
+        
+        // Update erweiterte Felder
+        appointment.setPriority(requestDto.getPriority());
+        appointment.setReminderMinutes(requestDto.getReminderMinutes());
+        appointment.setRecurring(requestDto.isRecurring());
+        appointment.setRecurrenceType(requestDto.getRecurrenceType());
+        appointment.setCategory(requestDto.getCategory());
+        appointment.setColorCode(requestDto.getColorCode());
     }
 
     private AppointmentResponseDto convertToResponseDto(Appointment appointment) {
-        return new AppointmentResponseDto(
+        AppointmentResponseDto dto = new AppointmentResponseDto(
                 appointment.getId(),
                 appointment.getTitle(),
                 appointment.getDescription(),
@@ -198,5 +228,15 @@ public class AppointmentService {
                 appointment.getCreatedAt(),
                 appointment.getUpdatedAt()
         );
+        
+        // Setze erweiterte Felder
+        dto.setPriority(appointment.getPriority());
+        dto.setReminderMinutes(appointment.getReminderMinutes());
+        dto.setRecurring(appointment.isRecurring());
+        dto.setRecurrenceType(appointment.getRecurrenceType());
+        dto.setCategory(appointment.getCategory());
+        dto.setColorCode(appointment.getColorCode());
+        
+        return dto;
     }
 }

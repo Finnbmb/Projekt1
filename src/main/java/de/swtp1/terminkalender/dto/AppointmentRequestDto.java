@@ -1,6 +1,7 @@
 package de.swtp1.terminkalender.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import de.swtp1.terminkalender.entity.Appointment;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -28,6 +29,19 @@ public class AppointmentRequestDto {
     private String location;
 
     private Long userId;
+
+    // Neue Felder für erweiterte Funktionen
+    private Appointment.Priority priority = Appointment.Priority.MEDIUM;
+    
+    private Integer reminderMinutes = 15;
+    
+    private boolean isRecurring = false;
+    
+    private Appointment.RecurrenceType recurrenceType;
+    
+    private String category;
+    
+    private String colorCode = "#007bff";
 
     // Konstruktoren
     public AppointmentRequestDto() {
@@ -92,6 +106,55 @@ public class AppointmentRequestDto {
         this.userId = userId;
     }
 
+    // Getter und Setter für neue Felder
+    public Appointment.Priority getPriority() {
+        return priority;
+    }
+
+    public void setPriority(Appointment.Priority priority) {
+        this.priority = priority;
+    }
+
+    public Integer getReminderMinutes() {
+        return reminderMinutes;
+    }
+
+    public void setReminderMinutes(Integer reminderMinutes) {
+        this.reminderMinutes = reminderMinutes;
+    }
+
+    public boolean isRecurring() {
+        return isRecurring;
+    }
+
+    public void setRecurring(boolean recurring) {
+        isRecurring = recurring;
+    }
+
+    public Appointment.RecurrenceType getRecurrenceType() {
+        return recurrenceType;
+    }
+
+    public void setRecurrenceType(Appointment.RecurrenceType recurrenceType) {
+        this.recurrenceType = recurrenceType;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public String getColorCode() {
+        return colorCode;
+    }
+
+    public void setColorCode(String colorCode) {
+        this.colorCode = colorCode;
+    }
+
     @Override
     public String toString() {
         return "AppointmentRequestDto{" +
@@ -99,7 +162,9 @@ public class AppointmentRequestDto {
                 ", startDateTime=" + startDateTime +
                 ", endDateTime=" + endDateTime +
                 ", location='" + location + '\'' +
-                ", userId=" + userId +
+                ", priority=" + priority +
+                ", reminderMinutes=" + reminderMinutes +
+                ", category='" + category + '\'' +
                 '}';
     }
 }

@@ -6,6 +6,9 @@ import de.swtp1.terminkalender.service.AppointmentService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -156,6 +159,31 @@ public class AppointmentController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Fehler beim Löschen des Termins: " + e.getMessage());
+        }
+    }
+
+    /**
+     * GET /api/v1/appointments/date-range
+     * Termine in einem Datumsbereich abrufen
+     */
+    @GetMapping("/date-range")
+    public ResponseEntity<Object> getAppointmentsByDateRange(
+            @RequestParam String startDate,
+            @RequestParam String endDate,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "100") int size) {
+        try {
+            LocalDate start = LocalDate.parse(startDate);
+            LocalDate end = LocalDate.parse(endDate);
+            
+            Pageable pageable = PageRequest.of(page, size, Sort.by("startDateTime"));
+            Page<AppointmentResponseDto> appointments = appointmentService.findAppointmentsByDateRange(start, end, pageable);
+            
+            return ResponseEntity.ok(appointments.getContent());
+            
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Fehler beim Abrufen der Termine: " + e.getMessage());
         }
     }
 }

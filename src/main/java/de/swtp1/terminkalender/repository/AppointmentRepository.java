@@ -66,4 +66,12 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
             @Param("userId") Long userId,
             @Param("startDateTime") LocalDateTime startDateTime,
             @Param("endDateTime") LocalDateTime endDateTime);
+
+    /**
+     * Findet Termine in einem Datumsbereich mit Paginierung
+     */
+    Page<Appointment> findByStartDateTimeBetween(
+            LocalDateTime startDateTime, 
+            LocalDateTime endDateTime, 
+            Pageable pageable);
 }

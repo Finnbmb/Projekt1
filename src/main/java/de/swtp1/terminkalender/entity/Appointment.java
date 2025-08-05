@@ -37,6 +37,27 @@ public class Appointment {
     @Column(name = "user_id")
     private Long userId;
 
+    // Neue Features
+    @Enumerated(EnumType.STRING)
+    @Column(name = "priority")
+    private Priority priority = Priority.MEDIUM;
+
+    @Column(name = "reminder_minutes")
+    private Integer reminderMinutes = 15; // Standard: 15 Minuten vor Termin
+
+    @Column(name = "is_recurring")
+    private boolean isRecurring = false;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "recurrence_type")
+    private RecurrenceType recurrenceType;
+
+    @Column(name = "category")
+    private String category;
+
+    @Column(name = "color_code")
+    private String colorCode = "#007bff"; // Standard: Blau
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
@@ -55,6 +76,44 @@ public class Appointment {
         this.endDateTime = endDateTime;
         this.location = location;
         this.userId = userId;
+        this.priority = Priority.MEDIUM;
+        this.reminderMinutes = 15;
+        this.colorCode = "#007bff";
+    }
+
+    // Enums für neue Features
+    public enum Priority {
+        LOW("Niedrig"),
+        MEDIUM("Mittel"),
+        HIGH("Hoch"),
+        URGENT("Dringend");
+
+        private final String displayName;
+
+        Priority(String displayName) {
+            this.displayName = displayName;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
+    }
+
+    public enum RecurrenceType {
+        DAILY("Täglich"),
+        WEEKLY("Wöchentlich"),
+        MONTHLY("Monatlich"),
+        YEARLY("Jährlich");
+
+        private final String displayName;
+
+        RecurrenceType(String displayName) {
+            this.displayName = displayName;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
     }
 
     // JPA Lifecycle Callbacks
@@ -132,6 +191,55 @@ public class Appointment {
 
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
+    }
+
+    // Neue Getter und Setter
+    public Priority getPriority() {
+        return priority;
+    }
+
+    public void setPriority(Priority priority) {
+        this.priority = priority;
+    }
+
+    public Integer getReminderMinutes() {
+        return reminderMinutes;
+    }
+
+    public void setReminderMinutes(Integer reminderMinutes) {
+        this.reminderMinutes = reminderMinutes;
+    }
+
+    public boolean isRecurring() {
+        return isRecurring;
+    }
+
+    public void setRecurring(boolean recurring) {
+        isRecurring = recurring;
+    }
+
+    public RecurrenceType getRecurrenceType() {
+        return recurrenceType;
+    }
+
+    public void setRecurrenceType(RecurrenceType recurrenceType) {
+        this.recurrenceType = recurrenceType;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public String getColorCode() {
+        return colorCode;
+    }
+
+    public void setColorCode(String colorCode) {
+        this.colorCode = colorCode;
     }
 
     @Override

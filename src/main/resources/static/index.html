@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📅 Terminkalender</title>
+    <title>📅 Erweiteter Terminkalender</title>
     <style>
         * {
             margin: 0;
@@ -19,7 +19,7 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             background: white;
             border-radius: 15px;
@@ -39,6 +39,11 @@
             margin-bottom: 10px;
         }
 
+        .header .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
         .controls {
             padding: 20px 30px;
             background: #f8f9fa;
@@ -47,6 +52,19 @@
             flex-wrap: wrap;
             gap: 10px;
             align-items: center;
+        }
+
+        .control-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .control-label {
+            font-weight: 600;
+            color: #333;
+            margin-right: 10px;
         }
 
         .btn {
@@ -58,6 +76,7 @@
             transition: all 0.3s;
             text-decoration: none;
             display: inline-block;
+            font-size: 0.9rem;
         }
 
         .btn-primary {
@@ -79,15 +98,13 @@
             background: #1e7e34;
         }
 
-        .btn-danger {
-            background: #dc3545;
+        .btn-info {
+            background: #17a2b8;
             color: white;
-            padding: 5px 10px;
-            font-size: 0.8rem;
         }
 
-        .btn-danger:hover {
-            background: #c82333;
+        .btn-info:hover {
+            background: #138496;
         }
 
         .btn-warning {
@@ -101,8 +118,56 @@
             background: #e0a800;
         }
 
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+            padding: 5px 10px;
+            font-size: 0.8rem;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .form-control {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
         .content {
             padding: 30px;
+            min-height: 600px;
+        }
+
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #007bff;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
         }
 
         .appointments-grid {
@@ -118,11 +183,29 @@
             padding: 20px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             transition: transform 0.3s, box-shadow 0.3s;
+            border-left: 5px solid #007bff;
+            position: relative;
         }
 
         .appointment-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        }
+
+        .appointment-card.priority-low {
+            border-left-color: #28a745;
+        }
+
+        .appointment-card.priority-medium {
+            border-left-color: #007bff;
+        }
+
+        .appointment-card.priority-high {
+            border-left-color: #ffc107;
+        }
+
+        .appointment-card.priority-urgent {
+            border-left-color: #dc3545;
         }
 
         .appointment-header {
@@ -148,6 +231,54 @@
             color: #666;
             font-size: 0.9rem;
             margin-bottom: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .priority-badge {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .priority-low {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .priority-medium {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .priority-high {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .priority-urgent {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .category-badge {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            background: #e9ecef;
+            color: #495057;
+        }
+
+        .reminder-badge {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            background: #fff3cd;
+            color: #856404;
         }
 
         .appointment-description {
@@ -174,6 +305,18 @@
             margin-right: 8px;
         }
 
+        .holiday-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #dc3545;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
         .modal {
             display: none;
             position: fixed;
@@ -187,12 +330,12 @@
 
         .modal-content {
             background-color: white;
-            margin: 5% auto;
+            margin: 2% auto;
             padding: 30px;
             border-radius: 15px;
             width: 90%;
-            max-width: 600px;
-            max-height: 80vh;
+            max-width: 700px;
+            max-height: 90vh;
             overflow-y: auto;
         }
 
@@ -214,6 +357,13 @@
 
         .close:hover {
             color: #333;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
         }
 
         .form-group {
@@ -266,6 +416,12 @@
             border-color: #f5c6cb;
         }
 
+        .alert-info {
+            color: #0c5460;
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+        }
+
         .loading {
             text-align: center;
             padding: 40px;
@@ -281,6 +437,52 @@
         .no-appointments h3 {
             margin-bottom: 10px;
             color: #999;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background: #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .calendar-day {
+            background: white;
+            padding: 10px;
+            min-height: 100px;
+            position: relative;
+        }
+
+        .calendar-day-number {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .calendar-day.other-month {
+            background: #f8f9fa;
+            color: #999;
+        }
+
+        .calendar-day.today {
+            background: #007bff;
+            color: white;
+        }
+
+        .calendar-day.holiday {
+            background: #ffe6e6;
+        }
+
+        .calendar-appointment {
+            background: #007bff;
+            color: white;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            margin-top: 2px;
+            cursor: pointer;
         }
 
         @media (max-width: 768px) {
@@ -301,27 +503,258 @@
             .appointment-actions {
                 align-self: flex-end;
             }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-bar {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Calendar View Styles */
+        .calendar-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .calendar-header {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .calendar-nav-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+
+        .calendar-nav-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .calendar-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+        }
+
+        .calendar-day-header {
+            background: #f8f9fa;
+            padding: 15px 5px;
+            text-align: center;
+            font-weight: bold;
+            color: #495057;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .calendar-day {
+            min-height: 120px;
+            border: 1px solid #dee2e6;
+            padding: 8px;
+            position: relative;
+            background: white;
+            transition: background 0.2s;
+        }
+
+        .calendar-day:hover {
+            background: #f8f9fa;
+        }
+
+        .calendar-day.other-month {
+            background: #f8f9fa;
+            color: #6c757d;
+        }
+
+        .calendar-day.today {
+            background: #e3f2fd;
+            border: 2px solid #2196f3;
+        }
+
+        .calendar-day.has-appointments {
+            background: #fff3cd;
+        }
+
+        .calendar-day-number {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #495057;
+        }
+
+        .calendar-day.other-month .calendar-day-number {
+            color: #adb5bd;
+        }
+
+        .calendar-day.today .calendar-day-number {
+            color: #1976d2;
+        }
+
+        .calendar-appointment {
+            background: #007bff;
+            color: white;
+            padding: 2px 6px;
+            margin: 2px 0;
+            border-radius: 3px;
+            font-size: 11px;
+            cursor: pointer;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            transition: background 0.2s;
+        }
+
+        .calendar-appointment:hover {
+            background: #0056b3;
+        }
+
+        .calendar-appointment.priority-urgent {
+            background: #dc3545;
+        }
+
+        .calendar-appointment.priority-high {
+            background: #fd7e14;
+        }
+
+        .calendar-appointment.priority-medium {
+            background: #007bff;
+        }
+
+        .calendar-appointment.priority-low {
+            background: #28a745;
+        }
+
+        .calendar-appointment-count {
+            background: #6c757d;
+            color: white;
+            font-size: 10px;
+            padding: 1px 4px;
+            border-radius: 8px;
+            position: absolute;
+            top: 5px;
+            right: 5px;
+        }
+
+        .calendar-controls {
+            padding: 15px;
+            background: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .calendar-legend {
+            display: flex;
+            gap: 15px;
+            font-size: 12px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>📅 Terminkalender</h1>
-            <p>Verwalten Sie Ihre Termine einfach und übersichtlich</p>
+            <h1>📅 Erweiteter Terminkalender</h1>
+            <p class="subtitle">Mit Prioritäten, Feiertagen und erweiterten Funktionen</p>
         </div>
 
         <div class="controls">
-            <button class="btn btn-success" onclick="showCreateModal()">➕ Neuer Termin</button>
-            <button class="btn btn-primary" onclick="loadToday()">📋 Heute</button>
-            <button class="btn btn-primary" onclick="loadUpcoming()">⏰ Anstehende</button>
-            <button class="btn btn-primary" onclick="loadThisWeek()">📅 Diese Woche</button>
-            <button class="btn btn-primary" onclick="loadThisMonth()">🗓️ Dieser Monat</button>
-            <button class="btn btn-primary" onclick="loadAllAppointments()">📋 Alle Termine</button>
+            <div class="control-group">
+                <span class="control-label">Aktionen:</span>
+                <button class="btn btn-success" onclick="showCreateModal()">➕ Neuer Termin</button>
+                <button class="btn btn-info" onclick="showHolidayInfo()">🎌 Feiertage</button>
+                <button class="btn btn-info" onclick="showStatistics()">📊 Statistiken</button>
+            </div>
+
+            <div class="control-group">
+                <span class="control-label">Ansichten:</span>
+                <button class="btn btn-primary" onclick="loadToday()">📋 Heute</button>
+                <button class="btn btn-primary" onclick="loadUpcoming()">⏰ Anstehende</button>
+                <button class="btn btn-primary" onclick="loadThisWeek()">📅 Diese Woche</button>
+                <button class="btn btn-primary" onclick="loadThisMonth()">🗓️ Dieser Monat</button>
+                <button class="btn btn-primary" onclick="loadAllAppointments()">📋 Alle Termine</button>
+                <button class="btn btn-success" onclick="showCalendarView()">🗓️ Kalenderansicht</button>
+            </div>
+
+            <div class="control-group">
+                <span class="control-label">Filter:</span>
+                <select id="priorityFilter" class="form-control" onchange="applyFilters()">
+                    <option value="">Alle Prioritäten</option>
+                    <option value="LOW">Niedrig</option>
+                    <option value="MEDIUM">Mittel</option>
+                    <option value="HIGH">Hoch</option>
+                    <option value="URGENT">Dringend</option>
+                </select>
+                <select id="categoryFilter" class="form-control" onchange="applyFilters()">
+                    <option value="">Alle Kategorien</option>
+                    <option value="Meeting">Meeting</option>
+                    <option value="Kunde">Kunde</option>
+                    <option value="Entwicklung">Entwicklung</option>
+                    <option value="Weiterbildung">Weiterbildung</option>
+                </select>
+                <select id="federalStateSelect" class="form-control" onchange="loadCurrentView()">
+                    <option value="">Bundesweit</option>
+                    <option value="NW">Nordrhein-Westfalen</option>
+                    <option value="BY">Bayern</option>
+                    <option value="BW">Baden-Württemberg</option>
+                    <option value="BE">Berlin</option>
+                    <option value="HE">Hessen</option>
+                </select>
+            </div>
         </div>
 
         <div class="content">
             <div id="alert-container"></div>
+            
+            <div id="stats-container" class="stats-bar" style="display: none;">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalAppointments">0</div>
+                    <div class="stat-label">Termine gesamt</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="todayAppointments">0</div>
+                    <div class="stat-label">Heute</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="upcomingAppointments">0</div>
+                    <div class="stat-label">Anstehend</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="holidaysThisMonth">0</div>
+                    <div class="stat-label">Feiertage diesen Monat</div>
+                </div>
+            </div>
+
             <div id="appointments-container">
                 <div class="loading">
                     <h3>Lade Termine...</h3>
@@ -331,6 +764,126 @@
     </div>
 
     <!-- Modal für neuen/bearbeiteten Termin -->
+    <div id="appointmentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Neuer Termin</h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <form id="appointmentForm">
+                <input type="hidden" id="appointmentId">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="title">Titel *</label>
+                        <input type="text" id="title" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="category">Kategorie</label>
+                        <select id="category" class="form-control">
+                            <option value="">Kategorie wählen</option>
+                            <option value="Meeting">Meeting</option>
+                            <option value="Kunde">Kunde</option>
+                            <option value="Entwicklung">Entwicklung</option>
+                            <option value="Weiterbildung">Weiterbildung</option>
+                            <option value="Persönlich">Persönlich</option>
+                            <option value="Projekt">Projekt</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Beschreibung</label>
+                    <textarea id="description" class="form-control" placeholder="Optionale Beschreibung des Termins"></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="startDateTime">Startdatum und -zeit *</label>
+                        <input type="datetime-local" id="startDateTime" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="endDateTime">Enddatum und -zeit *</label>
+                        <input type="datetime-local" id="endDateTime" class="form-control" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="location">Ort</label>
+                        <input type="text" id="location" class="form-control" placeholder="Besprechungsraum, Online, etc.">
+                    </div>
+                    <div class="form-group">
+                        <label for="priority">Priorität</label>
+                        <select id="priority" class="form-control">
+                            <option value="LOW">Niedrig</option>
+                            <option value="MEDIUM" selected>Mittel</option>
+                            <option value="HIGH">Hoch</option>
+                            <option value="URGENT">Dringend</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="reminderMinutes">Erinnerung (Minuten vorher)</label>
+                        <select id="reminderMinutes" class="form-control">
+                            <option value="0">Keine Erinnerung</option>
+                            <option value="5">5 Minuten</option>
+                            <option value="15" selected>15 Minuten</option>
+                            <option value="30">30 Minuten</option>
+                            <option value="60">1 Stunde</option>
+                            <option value="120">2 Stunden</option>
+                            <option value="1440">1 Tag</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="colorCode">Farbe</label>
+                        <select id="colorCode" class="form-control">
+                            <option value="#007bff">Blau (Standard)</option>
+                            <option value="#28a745">Grün</option>
+                            <option value="#ffc107">Gelb</option>
+                            <option value="#dc3545">Rot</option>
+                            <option value="#6f42c1">Lila</option>
+                            <option value="#fd7e14">Orange</option>
+                            <option value="#20c997">Türkis</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <button type="submit" class="btn btn-success">💾 Speichern</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">❌ Abbrechen</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal für Feiertage -->
+    <div id="holidayModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🎌 Feiertage und Informationen</h2>
+                <span class="close" onclick="closeHolidayModal()">&times;</span>
+            </div>
+            <div id="holiday-content">
+                <div class="loading">Lade Feiertagsinformationen...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal für Statistiken -->
+    <div id="statisticsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📊 Kalender-Statistiken</h2>
+                <span class="close" onclick="closeStatisticsModal()">&times;</span>
+            </div>
+            <div id="statistics-content">
+                <div class="loading">Berechne Statistiken...</div>
+            </div>
+        </div>
+    </div>
     <div id="appointmentModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -376,10 +929,15 @@
     <script>
         const API_BASE = 'http://localhost:8080/api/v1';
         let currentEditId = null;
+        let currentAppointments = [];
+        let currentView = 'all';
+        let currentFederalState = null;
+        let currentCalendarDate = new Date();
 
         // Initial load
         document.addEventListener('DOMContentLoaded', function() {
             loadAllAppointments();
+            loadStatisticsBar();
         });
 
         // Modal functions
@@ -387,6 +945,15 @@
             currentEditId = null;
             document.getElementById('modal-title').textContent = 'Neuer Termin';
             document.getElementById('appointmentForm').reset();
+            
+            // Setze Standard-Datetime auf jetzt + 1 Stunde
+            const now = new Date();
+            const startTime = new Date(now.getTime() + 60 * 60 * 1000); // +1 Stunde
+            const endTime = new Date(startTime.getTime() + 60 * 60 * 1000); // +1 weitere Stunde
+            
+            document.getElementById('startDateTime').value = formatDateTimeForInput(startTime);
+            document.getElementById('endDateTime').value = formatDateTimeForInput(endTime);
+            
             document.getElementById('appointmentModal').style.display = 'block';
         }
 
@@ -399,6 +966,10 @@
             document.getElementById('startDateTime').value = formatDateTimeForInput(appointment.startDateTime);
             document.getElementById('endDateTime').value = formatDateTimeForInput(appointment.endDateTime);
             document.getElementById('location').value = appointment.location || '';
+            document.getElementById('category').value = appointment.category || '';
+            document.getElementById('priority').value = appointment.priority || 'MEDIUM';
+            document.getElementById('reminderMinutes').value = appointment.reminderMinutes || 15;
+            document.getElementById('colorCode').value = appointment.colorCode || '#007bff';
             
             document.getElementById('appointmentModal').style.display = 'block';
         }
@@ -408,62 +979,290 @@
             currentEditId = null;
         }
 
+        function showHolidayInfo() {
+            document.getElementById('holidayModal').style.display = 'block';
+            loadHolidayInfo();
+        }
+
+        function closeHolidayModal() {
+            document.getElementById('holidayModal').style.display = 'none';
+        }
+
+        function showStatistics() {
+            document.getElementById('statisticsModal').style.display = 'block';
+            loadDetailedStatistics();
+        }
+
+        function closeStatisticsModal() {
+            document.getElementById('statisticsModal').style.display = 'none';
+        }
+
         // Load functions
         async function loadAllAppointments() {
+            currentView = 'all';
             try {
                 showLoading();
                 const response = await fetch(`${API_BASE}/appointments?size=100`);
                 const data = await response.json();
-                displayAppointments(data.content, 'Alle Termine');
+                currentAppointments = data.content;
+                displayAppointments(currentAppointments, 'Alle Termine');
+                updateQuickStats();
             } catch (error) {
                 showError('Fehler beim Laden der Termine: ' + error.message);
             }
         }
 
         async function loadToday() {
+            currentView = 'today';
             try {
                 showLoading();
                 const response = await fetch(`${API_BASE}/calendar/today`);
                 const appointments = await response.json();
+                currentAppointments = appointments;
                 displayAppointments(appointments, 'Termine heute');
+                updateQuickStats();
             } catch (error) {
                 showError('Fehler beim Laden der heutigen Termine: ' + error.message);
             }
         }
 
         async function loadUpcoming() {
+            currentView = 'upcoming';
             try {
                 showLoading();
                 const response = await fetch(`${API_BASE}/calendar/upcoming`);
                 const appointments = await response.json();
+                currentAppointments = appointments;
                 displayAppointments(appointments, 'Anstehende Termine');
+                updateQuickStats();
             } catch (error) {
                 showError('Fehler beim Laden der anstehenden Termine: ' + error.message);
             }
         }
 
         async function loadThisWeek() {
+            currentView = 'week';
             try {
                 showLoading();
                 const response = await fetch(`${API_BASE}/calendar/this-week`);
                 const data = await response.json();
                 const appointments = Object.values(data).flat();
+                currentAppointments = appointments;
                 displayAppointments(appointments, 'Termine diese Woche');
+                updateQuickStats();
             } catch (error) {
                 showError('Fehler beim Laden der Termine dieser Woche: ' + error.message);
             }
         }
 
         async function loadThisMonth() {
+            currentView = 'month';
             try {
                 showLoading();
                 const response = await fetch(`${API_BASE}/calendar/this-month`);
                 const data = await response.json();
                 const appointments = Object.values(data).flat();
+                currentAppointments = appointments;
                 displayAppointments(appointments, 'Termine diesen Monat');
+                updateQuickStats();
             } catch (error) {
                 showError('Fehler beim Laden der Termine dieses Monats: ' + error.message);
             }
+        }
+
+        function loadCurrentView() {
+            currentFederalState = document.getElementById('federalStateSelect').value;
+            switch(currentView) {
+                case 'today': loadToday(); break;
+                case 'upcoming': loadUpcoming(); break;
+                case 'week': loadThisWeek(); break;
+                case 'month': loadThisMonth(); break;
+                default: loadAllAppointments(); break;
+            }
+        }
+
+        // Calendar View Functions
+        function showCalendarView() {
+            currentView = 'calendar';
+            loadCalendarView();
+        }
+
+        async function loadCalendarView() {
+            try {
+                showLoading();
+                
+                // Lade Termine für den aktuellen Monat
+                const year = currentCalendarDate.getFullYear();
+                const month = currentCalendarDate.getMonth() + 1;
+                const startDate = new Date(year, month - 1, 1);
+                const endDate = new Date(year, month, 0);
+                
+                const response = await fetch(`${API_BASE}/appointments/date-range?startDate=${startDate.toISOString().split('T')[0]}&endDate=${endDate.toISOString().split('T')[0]}&size=1000`);
+                const data = await response.json();
+                const appointments = Array.isArray(data) ? data : (data.content || []);
+                
+                renderCalendar(appointments);
+            } catch (error) {
+                showError('Fehler beim Laden der Kalenderansicht: ' + error.message);
+            }
+        }
+
+        function renderCalendar(appointments) {
+            const container = document.getElementById('appointments-container');
+            const year = currentCalendarDate.getFullYear();
+            const month = currentCalendarDate.getMonth();
+            
+            const monthNames = [
+                'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
+                'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'
+            ];
+            
+            const dayNames = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+            
+            // Ersten Tag des Monats und letzten Tag
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const startDate = new Date(firstDay);
+            startDate.setDate(startDate.getDate() - firstDay.getDay());
+            
+            let html = `
+                <div class="calendar-container">
+                    <div class="calendar-header">
+                        <button class="calendar-nav-btn" onclick="previousMonth()">‹ Vorheriger</button>
+                        <h2 class="calendar-title">${monthNames[month]} ${year}</h2>
+                        <button class="calendar-nav-btn" onclick="nextMonth()">Nächster ›</button>
+                    </div>
+                    <div class="calendar-grid">
+            `;
+            
+            // Wochentag-Header
+            dayNames.forEach(day => {
+                html += `<div class="calendar-day-header">${day}</div>`;
+            });
+            
+            // Kalender-Tage
+            const today = new Date();
+            const currentDate = new Date(startDate);
+            
+            for (let week = 0; week < 6; week++) {
+                for (let day = 0; day < 7; day++) {
+                    const isCurrentMonth = currentDate.getMonth() === month;
+                    const isToday = currentDate.toDateString() === today.toDateString();
+                    const dateStr = currentDate.toISOString().split('T')[0];
+                    
+                    // Termine für diesen Tag finden
+                    const dayAppointments = appointments.filter(app => {
+                        const appDate = new Date(app.startDateTime).toISOString().split('T')[0];
+                        return appDate === dateStr;
+                    });
+                    
+                    let dayClass = 'calendar-day';
+                    if (!isCurrentMonth) dayClass += ' other-month';
+                    if (isToday) dayClass += ' today';
+                    if (dayAppointments.length > 0) dayClass += ' has-appointments';
+                    
+                    html += `
+                        <div class="${dayClass}" onclick="showDayAppointments('${dateStr}', ${JSON.stringify(dayAppointments).replace(/"/g, '&quot;')})">
+                            <div class="calendar-day-number">${currentDate.getDate()}</div>
+                    `;
+                    
+                    // Termine anzeigen (max 3, dann "...")
+                    const maxVisible = 3;
+                    dayAppointments.slice(0, maxVisible).forEach(appointment => {
+                        const priorityClass = `priority-${appointment.priority?.toLowerCase() || 'medium'}`;
+                        const startTime = new Date(appointment.startDateTime).toLocaleTimeString('de-DE', {hour: '2-digit', minute: '2-digit'});
+                        
+                        html += `
+                            <div class="calendar-appointment ${priorityClass}" 
+                                 onclick="event.stopPropagation(); showEditModal(${JSON.stringify(appointment).replace(/"/g, '&quot;')})"
+                                 title="${escapeHtml(appointment.title)} - ${startTime}">
+                                ${startTime} ${escapeHtml(appointment.title)}
+                            </div>
+                        `;
+                    });
+                    
+                    if (dayAppointments.length > maxVisible) {
+                        html += `<div class="calendar-appointment-count">+${dayAppointments.length - maxVisible}</div>`;
+                    }
+                    
+                    html += '</div>';
+                    currentDate.setDate(currentDate.getDate() + 1);
+                }
+            }
+            
+            html += `
+                    </div>
+                    <div class="calendar-controls">
+                        <div class="calendar-legend">
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #28a745;"></div>
+                                <span>Niedrig</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #007bff;"></div>
+                                <span>Mittel</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #fd7e14;"></div>
+                                <span>Hoch</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #dc3545;"></div>
+                                <span>Dringend</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-success" onclick="showCreateModal()">➕ Neuer Termin</button>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+
+        function previousMonth() {
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
+            loadCalendarView();
+        }
+
+        function nextMonth() {
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
+            loadCalendarView();
+        }
+
+        function showDayAppointments(dateStr, appointments) {
+            const date = new Date(dateStr);
+            const formattedDate = date.toLocaleDateString('de-DE', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            if (appointments.length === 0) {
+                // Zeige Create Modal mit vorausgefülltem Datum
+                showCreateModalForDate(dateStr);
+                return;
+            }
+            
+            displayAppointments(appointments, `Termine am ${formattedDate}`);
+        }
+
+        function showCreateModalForDate(dateStr) {
+            currentEditId = null;
+            document.getElementById('modal-title').textContent = 'Neuer Termin';
+            document.getElementById('appointmentForm').reset();
+            
+            // Setze Datum auf den gewählten Tag, Zeit auf nächste volle Stunde
+            const selectedDate = new Date(dateStr);
+            const now = new Date();
+            const startTime = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 
+                                     now.getHours() + 1, 0, 0);
+            const endTime = new Date(startTime.getTime() + 60 * 60 * 1000); // +1 Stunde
+            
+            document.getElementById('startDateTime').value = formatDateTimeForInput(startTime);
+            document.getElementById('endDateTime').value = formatDateTimeForInput(endTime);
+            
+            document.getElementById('appointmentModal').style.display = 'block';
         }
 
         // CRUD operations
@@ -477,6 +1276,10 @@
                     startDateTime: document.getElementById('startDateTime').value,
                     endDateTime: document.getElementById('endDateTime').value,
                     location: document.getElementById('location').value,
+                    category: document.getElementById('category').value,
+                    priority: document.getElementById('priority').value,
+                    reminderMinutes: parseInt(document.getElementById('reminderMinutes').value),
+                    colorCode: document.getElementById('colorCode').value,
                     userId: 1 // Default user
                 };
 
@@ -504,7 +1307,8 @@
                 if (response.ok) {
                     showSuccess(currentEditId ? 'Termin erfolgreich aktualisiert!' : 'Termin erfolgreich erstellt!');
                     closeModal();
-                    loadAllAppointments();
+                    loadCurrentView();
+                    loadStatisticsBar();
                 } else {
                     const errorData = await response.text();
                     showError('Fehler beim Speichern: ' + errorData);
@@ -526,7 +1330,8 @@
 
                 if (response.ok) {
                     showSuccess('Termin erfolgreich gelöscht!');
-                    loadAllAppointments();
+                    loadCurrentView();
+                    loadStatisticsBar();
                 } else {
                     showError('Fehler beim Löschen des Termins');
                 }
@@ -544,6 +1349,7 @@
                     <div class="no-appointments">
                         <h3>Keine Termine gefunden</h3>
                         <p>Es sind keine Termine für "${title}" vorhanden.</p>
+                        <button class="btn btn-success" onclick="showCreateModal()">➕ Ersten Termin erstellen</button>
                     </div>
                 `;
                 return;
@@ -553,13 +1359,19 @@
             html += '<div class="appointments-grid">';
             
             appointments.forEach(appointment => {
+                const priorityClass = `priority-${appointment.priority?.toLowerCase() || 'medium'}`;
+                const priorityText = getPriorityText(appointment.priority);
+                
                 html += `
-                    <div class="appointment-card">
+                    <div class="appointment-card ${priorityClass}" style="border-left-color: ${appointment.colorCode || '#007bff'}">
                         <div class="appointment-header">
                             <div>
                                 <div class="appointment-title">${escapeHtml(appointment.title)}</div>
                                 <div class="appointment-meta">
-                                    Erstellt: ${formatDateTime(appointment.createdAt)}
+                                    <span class="priority-badge ${priorityClass}">${priorityText}</span>
+                                    ${appointment.category ? `<span class="category-badge">${escapeHtml(appointment.category)}</span>` : ''}
+                                    ${appointment.reminderMinutes > 0 ? `<span class="reminder-badge">⏰ ${appointment.reminderMinutes} Min</span>` : ''}
+                                    <span style="color: #666;">Erstellt: ${formatDateTime(appointment.createdAt)}</span>
                                 </div>
                             </div>
                             <div class="appointment-actions">
@@ -580,6 +1392,9 @@
                                 <strong>🕐 Ende:</strong> ${formatDateTime(appointment.endDateTime)}
                             </div>
                             ${appointment.location ? `<div class="detail-item"><strong>📍 Ort:</strong> ${escapeHtml(appointment.location)}</div>` : ''}
+                            <div class="detail-item">
+                                <strong>⏱️ Dauer:</strong> ${calculateDuration(appointment.startDateTime, appointment.endDateTime)}
+                            </div>
                         </div>
                     </div>
                 `;
@@ -587,6 +1402,235 @@
             
             html += '</div>';
             container.innerHTML = html;
+        }
+
+        function applyFilters() {
+            const priorityFilter = document.getElementById('priorityFilter').value;
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            
+            let filteredAppointments = [...currentAppointments];
+            
+            if (priorityFilter) {
+                filteredAppointments = filteredAppointments.filter(app => app.priority === priorityFilter);
+            }
+            
+            if (categoryFilter) {
+                filteredAppointments = filteredAppointments.filter(app => app.category === categoryFilter);
+            }
+            
+            const title = `Gefilterte Termine (${filteredAppointments.length} von ${currentAppointments.length})`;
+            displayAppointments(filteredAppointments, title);
+        }
+
+        async function loadStatisticsBar() {
+            try {
+                // Lade verschiedene Statistiken
+                const [todayResponse, upcomingResponse, allResponse] = await Promise.all([
+                    fetch(`${API_BASE}/calendar/today`),
+                    fetch(`${API_BASE}/calendar/upcoming`),
+                    fetch(`${API_BASE}/appointments?size=100`)
+                ]);
+
+                const todayAppointments = await todayResponse.json();
+                const upcomingAppointments = await upcomingResponse.json();
+                const allAppointments = await allResponse.json();
+
+                // Lade Feiertage für diesen Monat
+                const now = new Date();
+                const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+                const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                
+                const holidayResponse = await fetch(`${API_BASE}/holidays/range?startDate=${startOfMonth.toISOString().split('T')[0]}&endDate=${endOfMonth.toISOString().split('T')[0]}`);
+                const holidays = await holidayResponse.json();
+
+                // Update UI
+                document.getElementById('totalAppointments').textContent = allAppointments.totalElements;
+                document.getElementById('todayAppointments').textContent = todayAppointments.length;
+                document.getElementById('upcomingAppointments').textContent = upcomingAppointments.length;
+                document.getElementById('holidaysThisMonth').textContent = holidays.length;
+                
+                document.getElementById('stats-container').style.display = 'grid';
+            } catch (error) {
+                console.error('Fehler beim Laden der Statistiken:', error);
+            }
+        }
+
+        function updateQuickStats() {
+            // Update nur die relevanten Zahlen ohne API-Calls
+            const filteredCount = currentAppointments.length;
+            document.getElementById('totalAppointments').textContent = filteredCount;
+        }
+
+        async function loadHolidayInfo() {
+            try {
+                const now = new Date();
+                const federalState = document.getElementById('federalStateSelect').value || null;
+                
+                // Lade Feiertage für dieses Jahr
+                const response = await fetch(`${API_BASE}/holidays/year/${now.getFullYear()}${federalState ? `?federalState=${federalState}` : ''}`);
+                const holidays = await response.json();
+
+                let html = `
+                    <h3>Feiertage ${now.getFullYear()}</h3>
+                    <p><strong>Bundesland:</strong> ${federalState ? getFederalStateName(federalState) : 'Bundesweit'}</p>
+                    <div style="max-height: 400px; overflow-y: auto;">
+                `;
+
+                holidays.forEach(holiday => {
+                    const date = new Date(holiday.date);
+                    const isPast = date < now;
+                    
+                    html += `
+                        <div style="padding: 10px; border: 1px solid #ddd; margin: 5px 0; border-radius: 5px; ${isPast ? 'opacity: 0.6;' : ''}">
+                            <strong>${holiday.name}</strong><br>
+                            <small>${formatDate(holiday.date)} - ${holiday.type}</small>
+                            ${holiday.federalState ? `<br><small>Nur in: ${getFederalStateName(holiday.federalState)}</small>` : ''}
+                        </div>
+                    `;
+                });
+
+                html += '</div>';
+                document.getElementById('holiday-content').innerHTML = html;
+            } catch (error) {
+                document.getElementById('holiday-content').innerHTML = 
+                    `<div class="alert alert-danger">Fehler beim Laden der Feiertage: ${error.message}</div>`;
+            }
+        }
+
+        async function loadDetailedStatistics() {
+            try {
+                // Berechne Statistiken für verschiedene Zeiträume
+                const now = new Date();
+                const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+                const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                const startOfYear = new Date(now.getFullYear(), 0, 1);
+                const endOfYear = new Date(now.getFullYear(), 11, 31);
+
+                const federalState = document.getElementById('federalStateSelect').value || null;
+                
+                const statsResponse = await fetch(`${API_BASE}/calendar-view/statistics?startDate=${startOfMonth.toISOString().split('T')[0]}&endDate=${endOfMonth.toISOString().split('T')[0]}${federalState ? `&federalState=${federalState}` : ''}`);
+                const stats = await statsResponse.json();
+
+                let html = `
+                    <h3>Kalender-Statistiken für ${now.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })}</h3>
+                    <div class="stats-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin: 20px 0;">
+                        <div class="stat-card">
+                            <div class="stat-number">${stats.totalDays}</div>
+                            <div class="stat-label">Tage gesamt</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${stats.workDays}</div>
+                            <div class="stat-label">Arbeitstage</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${stats.appointmentDays}</div>
+                            <div class="stat-label">Tage mit Terminen</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${stats.freeDays}</div>
+                            <div class="stat-label">Freie Arbeitstage</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${stats.holidayDays}</div>
+                            <div class="stat-label">Feiertage</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${Math.round(stats.utilizationRate)}%</div>
+                            <div class="stat-label">Auslastung</div>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('statistics-content').innerHTML = html;
+            } catch (error) {
+                document.getElementById('statistics-content').innerHTML = 
+                    `<div class="alert alert-danger">Fehler beim Laden der Statistiken: ${error.message}</div>`;
+            }
+        }
+
+        // Utility functions
+        function formatDateTime(dateTimeStr) {
+            const date = new Date(dateTimeStr);
+            return date.toLocaleString('de-DE', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('de-DE');
+        }
+
+        function formatDateTimeForInput(dateTimeStr) {
+            const date = new Date(dateTimeStr);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.toString().replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
+
+        function getPriorityText(priority) {
+            const priorityMap = {
+                'LOW': 'Niedrig',
+                'MEDIUM': 'Mittel',
+                'HIGH': 'Hoch',
+                'URGENT': 'Dringend'
+            };
+            return priorityMap[priority] || 'Mittel';
+        }
+
+        function getFederalStateName(code) {
+            const stateMap = {
+                'BADEN_WUERTTEMBERG': 'Baden-Württemberg',
+                'BAYERN': 'Bayern',
+                'BERLIN': 'Berlin',
+                'BRANDENBURG': 'Brandenburg',
+                'BREMEN': 'Bremen',
+                'HAMBURG': 'Hamburg',
+                'HESSEN': 'Hessen',
+                'MECKLENBURG_VORPOMMERN': 'Mecklenburg-Vorpommern',
+                'NIEDERSACHSEN': 'Niedersachsen',
+                'NORDRHEIN_WESTFALEN': 'Nordrhein-Westfalen',
+                'RHEINLAND_PFALZ': 'Rheinland-Pfalz',
+                'SAARLAND': 'Saarland',
+                'SACHSEN': 'Sachsen',
+                'SACHSEN_ANHALT': 'Sachsen-Anhalt',
+                'SCHLESWIG_HOLSTEIN': 'Schleswig-Holstein',
+                'THUERINGEN': 'Thüringen'
+            };
+            return stateMap[code] || code;
+        }
+
+        function calculateDuration(startDateTime, endDateTime) {
+            const start = new Date(startDateTime);
+            const end = new Date(endDateTime);
+            const diffMs = end - start;
+            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+            const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+            
+            if (diffHours > 0) {
+                return `${diffHours}h ${diffMinutes}min`;
+            } else {
+                return `${diffMinutes}min`;
+            }
         }
 
         function showLoading() {
@@ -613,46 +1657,23 @@
             }, 8000);
         }
 
-        // Utility functions
-        function formatDateTime(dateTimeStr) {
-            const date = new Date(dateTimeStr);
-            return date.toLocaleString('de-DE', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-        }
-
-        function formatDateTimeForInput(dateTimeStr) {
-            const date = new Date(dateTimeStr);
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            const hours = String(date.getHours()).padStart(2, '0');
-            const minutes = String(date.getMinutes()).padStart(2, '0');
-            return `${year}-${month}-${day}T${hours}:${minutes}`;
-        }
-
-        function escapeHtml(text) {
-            const map = {
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#039;'
-            };
-            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
-        }
-
         // Event listeners
         document.getElementById('appointmentForm').addEventListener('submit', saveAppointment);
 
         // Close modal when clicking outside
         window.onclick = function(event) {
-            if (event.target == document.getElementById('appointmentModal')) {
+            const appointmentModal = document.getElementById('appointmentModal');
+            const holidayModal = document.getElementById('holidayModal');
+            const statisticsModal = document.getElementById('statisticsModal');
+            
+            if (event.target == appointmentModal) {
                 closeModal();
+            }
+            if (event.target == holidayModal) {
+                closeHolidayModal();
+            }
+            if (event.target == statisticsModal) {
+                closeStatisticsModal();
             }
         }
 
@@ -660,6 +1681,8 @@
         document.addEventListener('keydown', function(event) {
             if (event.key === 'Escape') {
                 closeModal();
+                closeHolidayModal();
+                closeStatisticsModal();
             }
         });
     </script>

@@ -30,6 +30,26 @@ public class User {
     @Column(nullable = false)
     private String name;
 
+    // Erweiterte Benutzerfelder
+    @Column(name = "federal_state")
+    private String federalState; // Für bundeslandspezifische Feiertage
+
+    @Column(name = "timezone")
+    private String timezone = "Europe/Berlin";
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role")
+    private UserRole role = UserRole.USER;
+
+    @Column(name = "is_active")
+    private boolean isActive = true;
+
+    @Column(name = "default_reminder_minutes")
+    private Integer defaultReminderMinutes = 15;
+
+    @Column(name = "email_notifications")
+    private boolean emailNotifications = true;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
@@ -44,6 +64,28 @@ public class User {
         this.username = username;
         this.email = email;
         this.name = name;
+        this.role = UserRole.USER;
+        this.isActive = true;
+        this.defaultReminderMinutes = 15;
+        this.emailNotifications = true;
+        this.timezone = "Europe/Berlin";
+    }
+
+    // Enum für Benutzerrollen
+    public enum UserRole {
+        USER("Benutzer"),
+        ADMIN("Administrator"),
+        MODERATOR("Moderator");
+
+        private final String displayName;
+
+        UserRole(String displayName) {
+            this.displayName = displayName;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
     }
 
     // JPA Lifecycle Callbacks
@@ -97,6 +139,55 @@ public class User {
 
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
+    }
+
+    // Neue Getter und Setter
+    public String getFederalState() {
+        return federalState;
+    }
+
+    public void setFederalState(String federalState) {
+        this.federalState = federalState;
+    }
+
+    public String getTimezone() {
+        return timezone;
+    }
+
+    public void setTimezone(String timezone) {
+        this.timezone = timezone;
+    }
+
+    public UserRole getRole() {
+        return role;
+    }
+
+    public void setRole(UserRole role) {
+        this.role = role;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
+    }
+
+    public Integer getDefaultReminderMinutes() {
+        return defaultReminderMinutes;
+    }
+
+    public void setDefaultReminderMinutes(Integer defaultReminderMinutes) {
+        this.defaultReminderMinutes = defaultReminderMinutes;
+    }
+
+    public boolean isEmailNotifications() {
+        return emailNotifications;
+    }
+
+    public void setEmailNotifications(boolean emailNotifications) {
+        this.emailNotifications = emailNotifications;
     }
 
     @Override
