@@ -5,9 +5,11 @@ import de.swtp1.terminkalender.entity.User;
 import de.swtp1.terminkalender.repository.AppointmentRepository;
 import de.swtp1.terminkalender.repository.UserRepository;
 import de.swtp1.terminkalender.service.HolidayService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
 import java.time.Year;
@@ -22,20 +24,31 @@ public class DataInitializer {
     @Bean
     public CommandLineRunner initData(UserRepository userRepository, 
                                     AppointmentRepository appointmentRepository,
-                                    HolidayService holidayService) {
+                                    HolidayService holidayService,
+                                    PasswordEncoder passwordEncoder) {
         return args -> {
             // Initialisiere Feiertage für aktuelles Jahr
             int currentYear = Year.now().getValue();
             holidayService.initializeGermanHolidays(currentYear);
             
+            // Prüfe ob bereits Daten vorhanden sind
+            if (userRepository.count() > 0) {
+                System.out.println("✅ Daten bereits vorhanden - überspringe Initialisierung");
+                return;
+            }
+            
+            System.out.println("🔄 Erstmalige Dateninitialisierung...");
+            
             // Test-Benutzer erstellen mit erweiterten Feldern
             User testUser = new User("testuser", "test@example.com", "Test Benutzer");
+            testUser.setPasswordHash(passwordEncoder.encode("password123"));
             testUser.setFederalState("NW"); // Nordrhein-Westfalen
             testUser.setDefaultReminderMinutes(15);
             testUser.setEmailNotifications(true);
             testUser = userRepository.save(testUser);
             
             User adminUser = new User("admin", "admin@example.com", "Admin Benutzer");
+            adminUser.setPasswordHash(passwordEncoder.encode("admin123"));
             adminUser.setFederalState("BY"); // Bayern
             adminUser.setRole(User.UserRole.ADMIN);
             adminUser.setDefaultReminderMinutes(30);

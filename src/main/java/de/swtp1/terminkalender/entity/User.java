@@ -30,6 +30,18 @@ public class User {
     @Column(nullable = false)
     private String name;
 
+    @Column(name = "password_hash", nullable = false)
+    private String passwordHash;
+
+    @Column(name = "last_login")
+    private LocalDateTime lastLogin;
+
+    @Column(name = "account_locked")
+    private boolean accountLocked = false;
+
+    @Column(name = "login_attempts")
+    private int loginAttempts = 0;
+
     // Erweiterte Benutzerfelder
     @Column(name = "federal_state")
     private String federalState; // Für bundeslandspezifische Feiertage
@@ -69,6 +81,13 @@ public class User {
         this.defaultReminderMinutes = 15;
         this.emailNotifications = true;
         this.timezone = "Europe/Berlin";
+        this.accountLocked = false;
+        this.loginAttempts = 0;
+    }
+
+    public User(String username, String email, String name, String passwordHash) {
+        this(username, email, name);
+        this.passwordHash = passwordHash;
     }
 
     // Enum für Benutzerrollen
@@ -188,6 +207,38 @@ public class User {
 
     public void setEmailNotifications(boolean emailNotifications) {
         this.emailNotifications = emailNotifications;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
+
+    public LocalDateTime getLastLogin() {
+        return lastLogin;
+    }
+
+    public void setLastLogin(LocalDateTime lastLogin) {
+        this.lastLogin = lastLogin;
+    }
+
+    public boolean isAccountLocked() {
+        return accountLocked;
+    }
+
+    public void setAccountLocked(boolean accountLocked) {
+        this.accountLocked = accountLocked;
+    }
+
+    public int getLoginAttempts() {
+        return loginAttempts;
+    }
+
+    public void setLoginAttempts(int loginAttempts) {
+        this.loginAttempts = loginAttempts;
     }
 
     @Override

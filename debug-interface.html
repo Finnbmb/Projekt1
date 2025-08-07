@@ -32,6 +32,24 @@
         <div id="calendarResult" class="result"></div>
     </div>
 
+    <div class="test-section">
+        <h3>3. New Features Test</h3>
+        <button onclick="testHolidays()">Test Feiertage</button>
+        <button onclick="testCalendarView()">Test Kalenderansicht</button>
+        <button onclick="testNewAppointmentFields()">Test erweiterte Termine</button>
+        <button onclick="testStatistics()">Test Statistiken</button>
+        <div id="newFeaturesResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>4. 🔐 Security & Authentication Tests</h3>
+        <button onclick="testRegister()">Test Registrierung</button>
+        <button onclick="testLogin()">Test Login</button>
+        <button onclick="testTokenValidation()">Test Token-Validierung</button>
+        <button onclick="testCurrentUser()">Test Aktueller User</button>
+        <div id="authResult" class="result"></div>
+    </div>
+
     <script>
         const API_BASE = 'http://localhost:8080/api/v1';
 
@@ -112,6 +130,181 @@
         function showResult(elementId, message, type) {
             const element = document.getElementById(elementId);
             element.innerHTML = `<p class="${type}">${message}</p>`;
+        }
+
+        // Neue Feature-Tests
+        async function testHolidays() {
+            try {
+                const response = await fetch(`${API_BASE}/holidays/year/2025`);
+                const data = await response.json();
+                console.log('Holidays data:', data);
+                showResult('newFeaturesResult', `✅ Feiertage: ${data.length} Feiertage für 2025 gefunden`, 'success');
+            } catch (error) {
+                console.error('Holidays error:', error);
+                showResult('newFeaturesResult', `❌ Feiertage Fehler: ${error.message}`, 'error');
+            }
+        }
+
+        async function testCalendarView() {
+            try {
+                const response = await fetch(`${API_BASE}/calendar-view/current-month`);
+                const data = await response.json();
+                console.log('Calendar view data:', data);
+                showResult('newFeaturesResult', `✅ Kalenderansicht: Monat ${data.month}/${data.year} geladen`, 'success');
+            } catch (error) {
+                console.error('Calendar view error:', error);
+                showResult('newFeaturesResult', `❌ Kalenderansicht Fehler: ${error.message}`, 'error');
+            }
+        }
+
+        async function testNewAppointmentFields() {
+            try {
+                const response = await fetch(`${API_BASE}/appointments`);
+                const data = await response.json();
+                console.log('Appointments with new fields:', data);
+                
+                if (data.content && data.content.length > 0) {
+                    const appointment = data.content[0];
+                    const hasNewFields = appointment.priority || appointment.category || appointment.colorCode;
+                    if (hasNewFields) {
+                        showResult('newFeaturesResult', `✅ Erweiterte Termine: Neue Felder (Priorität: ${appointment.priority}, Kategorie: ${appointment.category}) funktionieren`, 'success');
+                    } else {
+                        showResult('newFeaturesResult', `⚠️ Erweiterte Termine: Alte Termine ohne neue Felder gefunden`, 'error');
+                    }
+                } else {
+                    showResult('newFeaturesResult', `⚠️ Erweiterte Termine: Keine Termine zum Testen vorhanden`, 'error');
+                }
+            } catch (error) {
+                console.error('New appointment fields error:', error);
+                showResult('newFeaturesResult', `❌ Erweiterte Termine Fehler: ${error.message}`, 'error');
+            }
+        }
+
+        async function testStatistics() {
+            try {
+                const startDate = '2025-08-01';
+                const endDate = '2025-08-31';
+                const response = await fetch(`${API_BASE}/calendar-view/statistics?startDate=${startDate}&endDate=${endDate}`);
+                const data = await response.json();
+                console.log('Statistics data:', data);
+                showResult('newFeaturesResult', `✅ Statistiken: ${data.totalDays} Tage, ${data.workDays} Arbeitstage, ${data.appointmentDays} Termine`, 'success');
+            } catch (error) {
+                console.error('Statistics error:', error);
+                showResult('newFeaturesResult', `❌ Statistiken Fehler: ${error.message}`, 'error');
+            }
+        }
+
+        // Authentication Tests
+        async function testRegister() {
+            try {
+                const testUser = {
+                    username: 'testuser_' + Date.now(),
+                    email: 'test_' + Date.now() + '@example.com',
+                    name: 'Test Benutzer',
+                    password: 'testpass123',
+                    confirmPassword: 'testpass123',
+                    federalState: 'NW'
+                };
+
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(testUser)
+                });
+
+                const data = await response.json();
+                console.log('Register response:', data);
+
+                if (response.ok) {
+                    localStorage.setItem('testToken', data.token);
+                    showResult('authResult', `✅ Registrierung: Benutzer ${data.user.username} erfolgreich erstellt`, 'success');
+                } else {
+                    showResult('authResult', `❌ Registrierung Fehler: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                console.error('Register error:', error);
+                showResult('authResult', `❌ Registrierung Fehler: ${error.message}`, 'error');
+            }
+        }
+
+        async function testLogin() {
+            try {
+                const loginData = {
+                    email: 'test@example.com',
+                    password: 'password123'
+                };
+
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(loginData)
+                });
+
+                const data = await response.json();
+                console.log('Login response:', data);
+
+                if (response.ok) {
+                    localStorage.setItem('testToken', data.token);
+                    showResult('authResult', `✅ Login: ${data.user.name} erfolgreich angemeldet`, 'success');
+                } else {
+                    showResult('authResult', `❌ Login Fehler: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showResult('authResult', `❌ Login Fehler: ${error.message}`, 'error');
+            }
+        }
+
+        async function testTokenValidation() {
+            try {
+                const token = localStorage.getItem('testToken');
+                if (!token) {
+                    showResult('authResult', `❌ Token-Validierung: Kein Token vorhanden (erst einloggen)`, 'error');
+                    return;
+                }
+
+                const response = await fetch(`${API_BASE}/auth/validate`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                const data = await response.json();
+                console.log('Token validation response:', data);
+
+                if (response.ok) {
+                    showResult('authResult', `✅ Token-Validierung: Token ist gültig`, 'success');
+                } else {
+                    showResult('authResult', `❌ Token-Validierung: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                console.error('Token validation error:', error);
+                showResult('authResult', `❌ Token-Validierung Fehler: ${error.message}`, 'error');
+            }
+        }
+
+        async function testCurrentUser() {
+            try {
+                const token = localStorage.getItem('testToken');
+                if (!token) {
+                    showResult('authResult', `❌ Aktueller User: Kein Token vorhanden (erst einloggen)`, 'error');
+                    return;
+                }
+
+                const response = await fetch(`${API_BASE}/auth/me`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                const data = await response.json();
+                console.log('Current user response:', data);
+
+                if (response.ok) {
+                    showResult('authResult', `✅ Aktueller User: ${data.name} (${data.email})`, 'success');
+                } else {
+                    showResult('authResult', `❌ Aktueller User Fehler: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                console.error('Current user error:', error);
+                showResult('authResult', `❌ Aktueller User Fehler: ${error.message}`, 'error');
+            }
         }
 
         // Browser Console Info
