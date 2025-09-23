@@ -184,4 +184,27 @@ public class AuthService {
                 .getBody();
         return claims.getSubject();
     }
+    
+    /**
+     * Benutzername aus Token extrahieren (für JWT Filter)
+     */
+    public String extractUsername(String token) {
+        try {
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(jwtSecret)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+            return claims.get("username", String.class);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+    
+    /**
+     * Token gültig prüfen (für JWT Filter)
+     */
+    public boolean isTokenValid(String token) {
+        return validateToken(token);
+    }
 }

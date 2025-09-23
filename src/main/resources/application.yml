@@ -7,7 +7,7 @@ spring:
   
   # H2 Database Configuration (Development)
   datasource:
-    url: jdbc:h2:mem:terminkalender
+    url: jdbc:h2:file:./data/terminkalender;DB_CLOSE_ON_EXIT=FALSE;AUTO_RECONNECT=TRUE
     driverClassName: org.h2.Driver
     username: sa
     password: password
@@ -22,7 +22,7 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     show-sql: true
     properties:
       hibernate:

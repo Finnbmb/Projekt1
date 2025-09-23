@@ -189,4 +189,14 @@ public class HolidayService {
         deleteHolidaysForYear(currentYear);
         initializeGermanHolidays(currentYear);
     }
+    
+    /**
+     * Debug-Methode: Alle Feiertage für ein Jahr ohne Bundesland-Filter
+     */
+    @Transactional(readOnly = true)
+    public List<Holiday> getHolidaysForYear(int year) {
+        LocalDate startOfYear = LocalDate.of(year, 1, 1);
+        LocalDate endOfYear = LocalDate.of(year, 12, 31);
+        return holidayRepository.findByDateBetween(startOfYear, endOfYear);
+    }
 }

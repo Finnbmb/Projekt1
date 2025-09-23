@@ -238,13 +238,163 @@
         }
 
         function showRegisterForm() {
-            // Hier würde die Registrierungslogik stehen
-            alert('Registrierung wird in der nächsten Version implementiert!');
+            const loginContainer = document.querySelector('.login-container');
+            loginContainer.innerHTML = `
+                <div class="login-header">
+                    <h1>📅 Terminkalender</h1>
+                    <p>Neues Konto erstellen</p>
+                </div>
+                
+                <div class="login-form">
+                    <div id="alert-container"></div>
+                    
+                    <form id="registerForm">
+                        <div class="form-group">
+                            <label for="regUsername">Benutzername</label>
+                            <input type="text" id="regUsername" class="form-control" required placeholder="Ihr Benutzername" minlength="3" maxlength="50">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="regEmail">E-Mail Adresse</label>
+                            <input type="email" id="regEmail" class="form-control" required placeholder="ihre.email@example.com">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="regName">Vollständiger Name</label>
+                            <input type="text" id="regName" class="form-control" required placeholder="Ihr vollständiger Name" minlength="2" maxlength="100">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="regPassword">Passwort</label>
+                            <input type="password" id="regPassword" class="form-control" required placeholder="Mindestens 6 Zeichen" minlength="6" maxlength="100">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="regConfirmPassword">Passwort bestätigen</label>
+                            <input type="password" id="regConfirmPassword" class="form-control" required placeholder="Passwort wiederholen">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="regFederalState">Bundesland (optional)</label>
+                            <select id="regFederalState" class="form-control">
+                                <option value="">Bitte wählen...</option>
+                                <option value="BADEN_WUERTTEMBERG">Baden-Württemberg</option>
+                                <option value="BAYERN">Bayern</option>
+                                <option value="BERLIN">Berlin</option>
+                                <option value="BRANDENBURG">Brandenburg</option>
+                                <option value="BREMEN">Bremen</option>
+                                <option value="HAMBURG">Hamburg</option>
+                                <option value="HESSEN">Hessen</option>
+                                <option value="MECKLENBURG_VORPOMMERN">Mecklenburg-Vorpommern</option>
+                                <option value="NIEDERSACHSEN">Niedersachsen</option>
+                                <option value="NORDRHEIN_WESTFALEN">Nordrhein-Westfalen</option>
+                                <option value="RHEINLAND_PFALZ">Rheinland-Pfalz</option>
+                                <option value="SAARLAND">Saarland</option>
+                                <option value="SACHSEN">Sachsen</option>
+                                <option value="SACHSEN_ANHALT">Sachsen-Anhalt</option>
+                                <option value="SCHLESWIG_HOLSTEIN">Schleswig-Holstein</option>
+                                <option value="THUERINGEN">Thüringen</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary" id="registerBtn">
+                            📝 Registrieren
+                        </button>
+                        
+                        <div class="loading" id="loading" style="display: none;">
+                            <p>Registrierung läuft...</p>
+                        </div>
+                    </form>
+                    
+                    <div class="register-link">
+                        <p>Bereits ein Konto? <a href="#" onclick="showLoginForm()">Jetzt anmelden</a></p>
+                    </div>
+                </div>
+            `;
+            
+            // Neuen Event Listener für das Registrierungsformular hinzufügen
+            document.getElementById('registerForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                await handleRegister();
+            });
+        }
+
+        async function handleRegister() {
+            const username = document.getElementById('regUsername').value;
+            const email = document.getElementById('regEmail').value;
+            const name = document.getElementById('regName').value;
+            const password = document.getElementById('regPassword').value;
+            const confirmPassword = document.getElementById('regConfirmPassword').value;
+            const federalState = document.getElementById('regFederalState').value;
+
+            // Frontend-Validierung
+            if (password !== confirmPassword) {
+                showError('Passwörter stimmen nicht überein');
+                return;
+            }
+
+            if (password.length < 6) {
+                showError('Passwort muss mindestens 6 Zeichen lang sein');
+                return;
+            }
+
+            hideAlert();
+            showLoading(true);
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        email: email,
+                        name: name,
+                        password: password,
+                        confirmPassword: confirmPassword,
+                        federalState: federalState || null
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showSuccess('Registrierung erfolgreich! Sie können sich jetzt anmelden.');
+                    // Nach 2 Sekunden zur Login-Form wechseln
+                    setTimeout(() => {
+                        showLoginForm();
+                    }, 2000);
+                } else {
+                    showError(data.message || 'Registrierung fehlgeschlagen');
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                showError('Verbindungsfehler. Bitte versuchen Sie es später erneut.');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function showLoginForm() {
+            // Seite neu laden, um zur ursprünglichen Login-Form zurückzukehren
+            window.location.reload();
         }
 
         function showLoading(show) {
-            document.getElementById('loading').style.display = show ? 'block' : 'none';
-            document.getElementById('loginBtn').style.display = show ? 'none' : 'block';
+            const loading = document.getElementById('loading');
+            const loginBtn = document.getElementById('loginBtn');
+            const registerBtn = document.getElementById('registerBtn');
+            
+            if (loading) {
+                loading.style.display = show ? 'block' : 'none';
+            }
+            if (loginBtn) {
+                loginBtn.style.display = show ? 'none' : 'block';
+            }
+            if (registerBtn) {
+                registerBtn.style.display = show ? 'none' : 'block';
+            }
         }
 
         function showError(message) {

@@ -41,10 +41,25 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
             @Param("endDate") LocalDateTime endDate);
 
     /**
+     * Findet Termine eines Benutzers für Erinnerungen (nur nach Startzeit filtern)
+     */
+    @Query("SELECT a FROM Appointment a WHERE a.userId = :userId AND a.startDateTime >= :startDate AND a.startDateTime <= :endDate ORDER BY a.startDateTime ASC")
+    List<Appointment> findUserAppointmentsForReminders(
+            @Param("userId") Long userId,
+            @Param("startDate") LocalDateTime startDate, 
+            @Param("endDate") LocalDateTime endDate);
+
+    /**
      * Findet Termine an einem bestimmten Datum
      */
     @Query("SELECT a FROM Appointment a WHERE a.startDateTime >= :startOfDay AND a.startDateTime < :endOfDay ORDER BY a.startDateTime ASC")
     List<Appointment> findAppointmentsByDate(@Param("startOfDay") LocalDateTime startOfDay, @Param("endOfDay") LocalDateTime endOfDay);
+
+    /**
+     * Findet Termine eines Benutzers an einem bestimmten Datum
+     */
+    @Query("SELECT a FROM Appointment a WHERE a.userId = :userId AND a.startDateTime >= :startOfDay AND a.startDateTime < :endOfDay ORDER BY a.startDateTime ASC")
+    List<Appointment> findUserAppointmentsByDate(@Param("userId") Long userId, @Param("startOfDay") LocalDateTime startOfDay, @Param("endOfDay") LocalDateTime endOfDay);
 
     /**
      * Sucht Termine nach Titel oder Beschreibung
@@ -53,9 +68,20 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     List<Appointment> searchAppointments(@Param("searchTerm") String searchTerm);
 
     /**
+     * Sucht Termine eines Benutzers nach Titel oder Beschreibung
+     */
+    @Query("SELECT a FROM Appointment a WHERE a.userId = :userId AND (LOWER(a.title) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR LOWER(a.description) LIKE LOWER(CONCAT('%', :searchTerm, '%'))) ORDER BY a.startDateTime ASC")
+    List<Appointment> searchUserAppointments(@Param("userId") Long userId, @Param("searchTerm") String searchTerm);
+
+    /**
      * Findet alle Termine mit Paginierung
      */
     Page<Appointment> findAllByOrderByStartDateTimeAsc(Pageable pageable);
+
+    /**
+     * Findet alle Termine eines Benutzers mit Paginierung
+     */
+    Page<Appointment> findByUserIdOrderByStartDateTimeAsc(Long userId, Pageable pageable);
 
     /**
      * Prüft auf Terminüberschneidungen für einen Benutzer
@@ -71,6 +97,15 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
      * Findet Termine in einem Datumsbereich mit Paginierung
      */
     Page<Appointment> findByStartDateTimeBetween(
+            LocalDateTime startDateTime, 
+            LocalDateTime endDateTime, 
+            Pageable pageable);
+
+    /**
+     * Findet Termine eines Benutzers in einem Datumsbereich mit Paginierung
+     */
+    Page<Appointment> findByUserIdAndStartDateTimeBetween(
+            Long userId,
             LocalDateTime startDateTime, 
             LocalDateTime endDateTime, 
             Pageable pageable);

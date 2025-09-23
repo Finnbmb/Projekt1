@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Datenbank & Debug Tools</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+        .section h2 {
+            color: #2c3e50;
+            margin-top: 0;
+        }
+        .button-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background: linear-gradient(135deg, #2980b9, #1f5582);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+        }
+        .btn.danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+        .btn.danger:hover {
+            background: linear-gradient(135deg, #c0392b, #a93226);
+            box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+        }
+        .btn.success {
+            background: linear-gradient(135deg, #27ae60, #229954);
+        }
+        .btn.success:hover {
+            background: linear-gradient(135deg, #229954, #1e8449);
+            box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
+        }
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 6px;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        .url-display {
+            font-family: 'Courier New', monospace;
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗄️ Terminkalender - Datenbank & Debug Tools</h1>
+        
+        <div class="status info">
+            <strong>ℹ️ Information:</strong> Diese Seite bietet direkten Zugriff auf die Datenbank und Debug-Tools für die Entwicklung.
+        </div>
+
+        <div class="section">
+            <h2>📊 Datenbank Übersicht</h2>
+            <p>Direkte Ansicht aller Tabellen und Daten ohne Spring Security Beschränkungen:</p>
+            <div class="button-group">
+                <a href="/database/view" class="btn success" target="_blank">📋 Vollständige Datenbank Übersicht</a>
+            </div>
+            <div class="url-display">http://localhost:8080/database/view</div>
+        </div>
+
+        <div class="section">
+            <h2>🔌 API Endpunkte</h2>
+            <p>JSON-APIs für direkte Datenabfragen:</p>
+            <div class="button-group">
+                <a href="/database/api/users" class="btn" target="_blank">👥 Alle Benutzer (JSON)</a>
+                <a href="/database/api/appointments" class="btn" target="_blank">📅 Alle Termine (JSON)</a>
+            </div>
+            <div class="url-display">
+                /database/api/users<br>
+                /database/api/appointments
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🗃️ H2 Console (Original)</h2>
+            <p>Die original H2 Datenbank-Console (falls verfügbar):</p>
+            <div class="button-group">
+                <a href="/h2-console" class="btn danger" target="_blank">⚠️ H2 Console</a>
+                <a href="/h2-debug.html" class="btn" target="_blank">🔧 H2 Debug Seite</a>
+            </div>
+            <div class="warning">
+                <strong>⚠️ Hinweis:</strong> Falls H2 Console nicht funktioniert, nutzen Sie die obigen Alternativen.
+            </div>
+            <div class="url-display">
+                URL: jdbc:h2:mem:terminkalender<br>
+                User: sa<br>
+                Password: password
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🏠 Navigation</h2>
+            <div class="button-group">
+                <a href="/login.html" class="btn">🔐 Login Seite</a>
+                <a href="/index.html" class="btn">📅 Hauptkalender</a>
+                <a href="/debug-interface.html" class="btn">🐛 Debug Interface</a>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📝 Schnelle SQL Abfragen</h2>
+            <p>Verwenden Sie die Database View für diese häufigen Abfragen:</p>
+            <ul>
+                <li><strong>Alle Benutzer:</strong> <code>SELECT * FROM users</code></li>
+                <li><strong>Termine eines Benutzers:</strong> <code>SELECT * FROM appointments WHERE user_id = ?</code></li>
+                <li><strong>Heutige Termine:</strong> <code>SELECT * FROM appointments WHERE DATE(start_date_time) = CURRENT_DATE</code></li>
+                <li><strong>Feiertage:</strong> <code>SELECT * FROM holidays WHERE date >= CURRENT_DATE</code></li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Status Check für die verschiedenen Endpunkte
+        function checkEndpoint(url, buttonId) {
+            fetch(url)
+                .then(response => {
+                    const button = document.getElementById(buttonId);
+                    if (response.ok) {
+                        button.style.background = 'linear-gradient(135deg, #27ae60, #229954)';
+                        button.innerHTML = '✅ ' + button.innerHTML;
+                    } else {
+                        button.style.background = 'linear-gradient(135deg, #e74c3c, #c0392b)';
+                        button.innerHTML = '❌ ' + button.innerHTML;
+                    }
+                })
+                .catch(error => {
+                    const button = document.getElementById(buttonId);
+                    button.style.background = 'linear-gradient(135deg, #e74c3c, #c0392b)';
+                    button.innerHTML = '❌ ' + button.innerHTML;
+                });
+        }
+
+        // Beim Laden der Seite Status prüfen
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Database & Debug Tools geladen');
+        });
+    </script>
+</body>
+</html>

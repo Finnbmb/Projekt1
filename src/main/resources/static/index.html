@@ -4,6 +4,76 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📅 Erweiteter Terminkalender</title>
+    <script>
+        // Authentifizierung prüfen bevor die Seite geladen wird
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuthentication();
+        });
+
+        async function checkAuthentication() {
+            const token = localStorage.getItem('authToken');
+            
+            if (!token) {
+                redirectToLogin();
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/v1/auth/validate', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    // Token ungültig
+                    localStorage.removeItem('authToken');
+                    localStorage.removeItem('user');
+                    redirectToLogin();
+                    return;
+                }
+
+                // Token gültig - Benutzerinformationen laden
+                await loadCurrentUser();
+                
+            } catch (error) {
+                console.error('Authentication check failed:', error);
+                redirectToLogin();
+            }
+        }
+
+        async function loadCurrentUser() {
+            const token = localStorage.getItem('authToken');
+            try {
+                const response = await fetch('/api/v1/auth/me', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const user = await response.json();
+                    localStorage.setItem('user', JSON.stringify(user));
+                    document.getElementById('user-info').textContent = `Willkommen, ${user.name}!`;
+                } else {
+                    redirectToLogin();
+                }
+            } catch (error) {
+                console.error('Failed to load user:', error);
+                redirectToLogin();
+            }
+        }
+
+        function redirectToLogin() {
+            window.location.href = '/login.html';
+        }
+
+        function logout() {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('user');
+            window.location.href = '/login.html';
+        }
+    </script>
     <style>
         * {
             margin: 0;
@@ -31,7 +101,14 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-content {
             text-align: center;
+            flex: 1;
         }
 
         .header h1 {
@@ -42,6 +119,33 @@
         .header .subtitle {
             font-size: 1.1rem;
             opacity: 0.9;
+        }
+
+        .user-section {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 10px;
+        }
+
+        .user-info {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .btn-logout {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-logout:hover {
+            background: rgba(255,255,255,0.3);
         }
 
         .controls {
@@ -526,10 +630,48 @@
             background: linear-gradient(135deg, #007bff, #0056b3);
             color: white;
             padding: 20px;
-            text-align: center;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .calendar-navigation {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .view-selector {
+            display: flex;
+            gap: 5px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 4px;
+        }
+
+        .view-btn {
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            opacity: 0.7;
+        }
+
+        .view-btn:hover {
+            opacity: 1;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .view-btn.active {
+            background: rgba(255,255,255,0.2);
+            opacity: 1;
+            font-weight: bold;
         }
 
         .calendar-nav-btn {
@@ -679,13 +821,435 @@
             height: 12px;
             border-radius: 2px;
         }
+
+        /* Week View Styles */
+        .week-view {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .week-header {
+            display: grid;
+            grid-template-columns: 80px repeat(7, 1fr);
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .time-column-header {
+            padding: 15px 10px;
+            font-weight: bold;
+            background: #e9ecef;
+            border-right: 1px solid #dee2e6;
+            text-align: center;
+        }
+
+        .week-day-header {
+            padding: 15px 10px;
+            text-align: center;
+            border-right: 1px solid #dee2e6;
+            transition: background 0.3s;
+        }
+
+        .week-day-header.today {
+            background: #e3f2fd;
+            color: #1976d2;
+            font-weight: bold;
+        }
+
+        .day-name {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .day-date {
+            font-size: 18px;
+        }
+
+        .week-body {
+            max-height: 500px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .week-appointments-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .week-appointments-overlay .week-appointment-block {
+            pointer-events: all;
+        }
+
+        .week-time-row {
+            display: grid;
+            grid-template-columns: 80px repeat(7, 1fr);
+            border-bottom: 1px solid #e9ecef;
+            min-height: 50px;
+        }
+
+        .time-slot {
+            padding: 10px;
+            background: #f8f9fa;
+            border-right: 1px solid #dee2e6;
+            font-size: 12px;
+            color: #6c757d;
+            text-align: center;
+        }
+
+        .week-day-slot {
+            border-right: 1px solid #e9ecef;
+            cursor: pointer;
+            position: relative;
+            padding: 2px;
+            transition: background 0.3s;
+            min-height: 50px;
+        }
+
+        .week-day-slot:hover {
+            background: #f8f9fa;
+        }
+
+        .week-appointment {
+            background: #007bff;
+            color: white;
+            padding: 4px 6px;
+            margin: 1px;
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        /* Version 2.0 - Zusammenhängender Block-Style */
+        .week-appointment-block {
+            background: #007bff;
+            color: white;
+            padding: 6px 8px;
+            border-radius: 0;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            overflow: hidden;
+            margin: 0;
+        }
+
+        .week-appointment-block.start-hour {
+            border-radius: 6px 6px 0 0;
+            margin: 0;
+        }
+
+        .week-appointment-block.middle-hour {
+            border-radius: 0;
+            margin: 0;
+        }
+
+        .week-appointment-block.end-hour {
+            border-radius: 0 0 6px 6px;
+            margin: 0;
+        }
+
+        .week-appointment-block.single-hour {
+            border-radius: 6px;
+            margin: 0;
+        }
+
+        .week-appointment-block .appointment-time {
+            font-size: 11px;
+            font-weight: bold;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .week-appointment-block .appointment-title {
+            font-size: 13px;
+            font-weight: bold;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            line-height: 1.2;
+        }
+
+        .week-appointment:hover, .week-appointment-block:hover {
+            transform: scale(1.02);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .week-appointment.high, .week-appointment-block.high {
+            background: #dc3545;
+        }
+
+        .week-appointment.medium, .week-appointment-block.medium {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .week-appointment.low, .week-appointment-block.low {
+            background: #28a745;
+        }
+
+        .appointment-time {
+            font-size: 9px;
+            opacity: 0.8;
+        }
+
+        .appointment-title {
+            font-weight: bold;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Day View Styles */
+        .day-view {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .day-header {
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+            text-align: center;
+        }
+
+        .day-timeline {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .day-hour-slot {
+            display: flex;
+            border-bottom: 1px solid #e9ecef;
+            min-height: 60px;
+            position: relative;
+        }
+
+        .hour-label {
+            width: 80px;
+            padding: 15px 10px;
+            background: #f8f9fa;
+            border-right: 1px solid #dee2e6;
+            font-size: 12px;
+            color: #6c757d;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .hour-content {
+            flex: 1;
+            padding: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+            position: relative;
+        }
+
+        .hour-content:hover {
+            background: #f8f9fa;
+        }
+
+        .day-appointment {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-left: 4px solid #007bff;
+            padding: 10px;
+            margin: 2px 0;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .day-appointment-block {
+            background: #28a745;
+            color: white;
+            padding: 8px 10px;
+            border-radius: 0;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            overflow: hidden;
+            margin: 0;
+            min-height: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .day-appointment-block.start-hour {
+            border-radius: 8px 8px 0 0;
+            margin: 0;
+        }
+
+        .day-appointment-block.middle-hour {
+            border-radius: 0;
+            margin: 0;
+        }
+
+        .day-appointment-block.end-hour {
+            border-radius: 0 0 8px 8px;
+            margin: 0;
+        }
+
+        .day-appointment-block.single-hour {
+            border-radius: 8px;
+            margin: 0;
+        }
+
+        .day-appointment-block .appointment-time {
+            font-size: 12px;
+            font-weight: bold;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .day-appointment-block .appointment-title {
+            font-size: 14px;
+            font-weight: bold;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            line-height: 1.2;
+            margin-top: 2px;
+        }
+
+        .day-appointment-block .appointment-description {
+            font-size: 12px;
+            font-weight: normal;
+            opacity: 0.9;
+            margin-top: 2px;
+            line-height: 1.1;
+        }
+
+        .day-appointments-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .day-appointments-overlay .day-appointment-block {
+            pointer-events: all;
+        }
+
+        .day-appointment:hover, .day-appointment-block:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transform: translateY(-1px);
+        }
+
+        .day-appointment.high, .day-appointment-block.high {
+            border-left-color: #dc3545;
+        }
+
+        .day-appointment.medium, .day-appointment-block.medium {
+            border-left-color: #ffc107;
+        }
+
+        .day-appointment.low {
+            border-left-color: #28a745;
+        }
+
+        .appointment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .appointment-priority {
+            background: #e9ecef;
+            color: #495057;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .day-appointment.high .appointment-priority {
+            background: #dc3545;
+            color: white;
+        }
+
+        .day-appointment.medium .appointment-priority {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .day-appointment.low .appointment-priority {
+            background: #28a745;
+            color: white;
+        }
+
+        .appointment-description {
+            color: #6c757d;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .appointment-location {
+            color: #6c757d;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .calendar-header {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .week-header,
+            .week-time-row {
+                grid-template-columns: 60px repeat(7, 1fr);
+            }
+
+            .time-column-header,
+            .time-slot {
+                font-size: 10px;
+                padding: 8px 4px;
+            }
+
+            .week-day-header {
+                padding: 8px 4px;
+            }
+
+            .day-name {
+                font-size: 12px;
+            }
+
+            .day-date {
+                font-size: 14px;
+            }
+
+            .week-appointment {
+                font-size: 9px;
+                padding: 2px 4px;
+            }
+
+            .hour-label {
+                width: 60px;
+                font-size: 10px;
+                padding: 8px 4px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>📅 Erweiteter Terminkalender</h1>
-            <p class="subtitle">Mit Prioritäten, Feiertagen und erweiterten Funktionen</p>
+            <div class="header-content">
+                <h1>📅 Erweiteter Terminkalender</h1>
+                <p class="subtitle">Mit Prioritäten, Feiertagen und erweiterten Funktionen</p>
+            </div>
+            <div class="user-section">
+                <div id="user-info" class="user-info">Lädt...</div>
+                <button class="btn-logout" onclick="logout()">Abmelden</button>
+            </div>
         </div>
 
         <div class="controls">
@@ -694,6 +1258,7 @@
                 <button class="btn btn-success" onclick="showCreateModal()">➕ Neuer Termin</button>
                 <button class="btn btn-info" onclick="showHolidayInfo()">🎌 Feiertage</button>
                 <button class="btn btn-info" onclick="showStatistics()">📊 Statistiken</button>
+                <button class="btn btn-warning" onclick="requestNotificationPermission()" id="notificationBtn" style="display: none;">🔔 Erinnerungen aktivieren</button>
             </div>
 
             <div class="control-group">
@@ -938,6 +1503,8 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadAllAppointments();
             loadStatisticsBar();
+            // Initialisiere mit Monatsansicht
+            setCalendarView('month');
         });
 
         // Modal functions
@@ -974,6 +1541,16 @@
             document.getElementById('appointmentModal').style.display = 'block';
         }
 
+        function showEditModalById(appointmentId) {
+            const appointment = window.appointmentData[appointmentId];
+            if (appointment) {
+                showEditModal(appointment);
+            } else {
+                console.error('Appointment not found for ID:', appointmentId);
+                showError('Termin nicht gefunden');
+            }
+        }
+
         function closeModal() {
             document.getElementById('appointmentModal').style.display = 'none';
             currentEditId = null;
@@ -997,12 +1574,45 @@
             document.getElementById('statisticsModal').style.display = 'none';
         }
 
+        // Authentication Helper Functions
+        function getAuthHeaders() {
+            const token = localStorage.getItem('authToken');
+            return {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            };
+        }
+
+        async function authenticatedFetch(url, options = {}) {
+            const authHeaders = getAuthHeaders();
+            
+            const config = {
+                ...options,
+                headers: {
+                    ...authHeaders,
+                    ...(options.headers || {})
+                }
+            };
+
+            const response = await fetch(url, config);
+            
+            if (response.status === 401) {
+                // Token abgelaufen oder ungültig
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('user');
+                window.location.href = '/login.html';
+                return;
+            }
+            
+            return response;
+        }
+
         // Load functions
         async function loadAllAppointments() {
             currentView = 'all';
             try {
                 showLoading();
-                const response = await fetch(`${API_BASE}/appointments?size=100`);
+                const response = await authenticatedFetch(`${API_BASE}/appointments?size=100`);
                 const data = await response.json();
                 currentAppointments = data.content;
                 displayAppointments(currentAppointments, 'Alle Termine');
@@ -1016,7 +1626,7 @@
             currentView = 'today';
             try {
                 showLoading();
-                const response = await fetch(`${API_BASE}/calendar/today`);
+                const response = await authenticatedFetch(`${API_BASE}/calendar/today`);
                 const appointments = await response.json();
                 currentAppointments = appointments;
                 displayAppointments(appointments, 'Termine heute');
@@ -1030,7 +1640,7 @@
             currentView = 'upcoming';
             try {
                 showLoading();
-                const response = await fetch(`${API_BASE}/calendar/upcoming`);
+                const response = await authenticatedFetch(`${API_BASE}/calendar/upcoming`);
                 const appointments = await response.json();
                 currentAppointments = appointments;
                 displayAppointments(appointments, 'Anstehende Termine');
@@ -1044,7 +1654,7 @@
             currentView = 'week';
             try {
                 showLoading();
-                const response = await fetch(`${API_BASE}/calendar/this-week`);
+                const response = await authenticatedFetch(`${API_BASE}/calendar/this-week`);
                 const data = await response.json();
                 const appointments = Object.values(data).flat();
                 currentAppointments = appointments;
@@ -1059,7 +1669,7 @@
             currentView = 'month';
             try {
                 showLoading();
-                const response = await fetch(`${API_BASE}/calendar/this-month`);
+                const response = await authenticatedFetch(`${API_BASE}/calendar/this-month`);
                 const data = await response.json();
                 const appointments = Object.values(data).flat();
                 currentAppointments = appointments;
@@ -1097,7 +1707,7 @@
                 const startDate = new Date(year, month - 1, 1);
                 const endDate = new Date(year, month, 0);
                 
-                const response = await fetch(`${API_BASE}/appointments/date-range?startDate=${startDate.toISOString().split('T')[0]}&endDate=${endDate.toISOString().split('T')[0]}&size=1000`);
+                const response = await authenticatedFetch(`${API_BASE}/appointments/date-range?startDate=${startDate.toISOString().split('T')[0]}&endDate=${endDate.toISOString().split('T')[0]}&size=1000`);
                 const data = await response.json();
                 const appointments = Array.isArray(data) ? data : (data.content || []);
                 
@@ -1109,6 +1719,10 @@
 
         function renderCalendar(appointments) {
             const container = document.getElementById('appointments-container');
+            if (!container) {
+                console.error('appointments-container not found!');
+                return;
+            }
             const year = currentCalendarDate.getFullYear();
             const month = currentCalendarDate.getMonth();
             
@@ -1128,9 +1742,16 @@
             let html = `
                 <div class="calendar-container">
                     <div class="calendar-header">
-                        <button class="calendar-nav-btn" onclick="previousMonth()">‹ Vorheriger</button>
-                        <h2 class="calendar-title">${monthNames[month]} ${year}</h2>
-                        <button class="calendar-nav-btn" onclick="nextMonth()">Nächster ›</button>
+                        <div class="calendar-navigation">
+                            <button class="calendar-nav-btn" onclick="previousPeriod()">‹ Vorheriger</button>
+                            <h2 class="calendar-title" id="calendar-title">${monthNames[month]} ${year}</h2>
+                            <button class="calendar-nav-btn" onclick="nextPeriod()">Nächster ›</button>
+                        </div>
+                        <div class="view-selector">
+                            <button class="view-btn active" onclick="setCalendarView('month')" id="month-btn">📅 Monat</button>
+                            <button class="view-btn" onclick="setCalendarView('week')" id="week-btn">📊 Woche</button>
+                            <button class="view-btn" onclick="setCalendarView('day')" id="day-btn">📋 Tag</button>
+                        </div>
                     </div>
                     <div class="calendar-grid">
             `;
@@ -1148,12 +1769,21 @@
                 for (let day = 0; day < 7; day++) {
                     const isCurrentMonth = currentDate.getMonth() === month;
                     const isToday = currentDate.toDateString() === today.toDateString();
-                    const dateStr = currentDate.toISOString().split('T')[0];
+                    
+                    // Korrigierte Datumserzeugung - lokale Zeitzone verwenden
+                    const year = currentDate.getFullYear();
+                    const month_padded = String(currentDate.getMonth() + 1).padStart(2, '0');
+                    const day_padded = String(currentDate.getDate()).padStart(2, '0');
+                    const dateStr = `${year}-${month_padded}-${day_padded}`;
                     
                     // Termine für diesen Tag finden
                     const dayAppointments = appointments.filter(app => {
-                        const appDate = new Date(app.startDateTime).toISOString().split('T')[0];
-                        return appDate === dateStr;
+                        const appDate = new Date(app.startDateTime);
+                        const appYear = appDate.getFullYear();
+                        const appMonth = String(appDate.getMonth() + 1).padStart(2, '0');
+                        const appDay = String(appDate.getDate()).padStart(2, '0');
+                        const appDateStr = `${appYear}-${appMonth}-${appDay}`;
+                        return appDateStr === dateStr;
                     });
                     
                     let dayClass = 'calendar-day';
@@ -1168,13 +1798,18 @@
                     
                     // Termine anzeigen (max 3, dann "...")
                     const maxVisible = 3;
-                    dayAppointments.slice(0, maxVisible).forEach(appointment => {
+                    dayAppointments.slice(0, maxVisible).forEach((appointment, index) => {
                         const priorityClass = `priority-${appointment.priority?.toLowerCase() || 'medium'}`;
                         const startTime = new Date(appointment.startDateTime).toLocaleTimeString('de-DE', {hour: '2-digit', minute: '2-digit'});
+                        const appointmentId = `appointment-${day}-${index}`;
+                        
+                        // Speichere appointment in globaler Variable für späteren Zugriff
+                        window.appointmentData = window.appointmentData || {};
+                        window.appointmentData[appointmentId] = appointment;
                         
                         html += `
                             <div class="calendar-appointment ${priorityClass}" 
-                                 onclick="event.stopPropagation(); showEditModal(${JSON.stringify(appointment).replace(/"/g, '&quot;')})"
+                                 onclick="event.stopPropagation(); showEditModalById('${appointmentId}')"
                                  title="${escapeHtml(appointment.title)} - ${startTime}">
                                 ${startTime} ${escapeHtml(appointment.title)}
                             </div>
@@ -1213,10 +1848,402 @@
                         </div>
                         <button class="btn btn-success" onclick="showCreateModal()">➕ Neuer Termin</button>
                     </div>
+                        </div>
+                    </div>
                 </div>
             `;
             
             container.innerHTML = html;
+        }
+
+        // Neue View-Funktionen
+        async function fetchAppointments(startDate, endDate) {
+            const response = await authenticatedFetch(`${API_BASE}/appointments/date-range?startDate=${startDate}&endDate=${endDate}&size=1000`);
+            return await response.json();
+        }
+
+        async function loadMonthView() {
+            // Die bestehende loadCalendarView() Funktion verwenden
+            await loadCalendarView();
+        }
+
+        async function loadWeekView() {
+            try {
+                showLoading();
+                
+                // Berechne Start der Woche (Montag)
+                const currentDate = new Date(currentCalendarDate);
+                const dayOfWeek = currentDate.getDay();
+                const startOfWeek = new Date(currentDate);
+                startOfWeek.setDate(currentDate.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+                
+                const endOfWeek = new Date(startOfWeek);
+                endOfWeek.setDate(startOfWeek.getDate() + 6);
+                
+                // Termine für die Woche laden
+                const appointments = await fetchAppointments(
+                    startOfWeek.toISOString().split('T')[0],
+                    endOfWeek.toISOString().split('T')[0]
+                );
+                
+                displayWeekView(startOfWeek, appointments);
+                
+                // Update title
+                const monthNames = [
+                    'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
+                    'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'
+                ];
+                const title = `${startOfWeek.getDate()}.${startOfWeek.getMonth() + 1} - ${endOfWeek.getDate()}.${endOfWeek.getMonth() + 1}.${endOfWeek.getFullYear()}`;
+                document.getElementById('calendar-title').textContent = title;
+                
+            } catch (error) {
+                console.error('Fehler beim Laden der Wochenansicht:', error);
+                showError('Fehler beim Laden der Wochenansicht');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function loadDayView() {
+            try {
+                showLoading();
+                
+                const currentDate = new Date(currentCalendarDate);
+                const dateStr = currentDate.toISOString().split('T')[0];
+                
+                // Termine für den Tag laden
+                const appointments = await fetchAppointments(dateStr, dateStr);
+                
+                displayDayView(currentDate, appointments);
+                
+                // Update title
+                const title = currentDate.toLocaleDateString('de-DE', {
+                    weekday: 'long',
+                    year: 'numeric', 
+                    month: 'long',
+                    day: 'numeric'
+                });
+                document.getElementById('calendar-title').textContent = title;
+                
+            } catch (error) {
+                console.error('Fehler beim Laden der Tagesansicht:', error);
+                showError('Fehler beim Laden der Tagesansicht');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Calendar View Management
+        let calendarViewMode = 'month'; // Neue Variable für Kalender-Ansicht
+        // currentCalendarDate wird bereits definiert
+
+        function setCalendarView(view) {
+            calendarViewMode = view;
+            
+            // Update button states
+            document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`${view}-btn`).classList.add('active');
+            
+            // Load appropriate view
+            switch(view) {
+                case 'month':
+                    loadMonthView();
+                    break;
+                case 'week':
+                    loadWeekView();
+                    break;
+                case 'day':
+                    loadDayView();
+                    break;
+            }
+        }
+
+        function previousPeriod() {
+            switch(calendarViewMode) {
+                case 'month':
+                    currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
+                    break;
+                case 'week':
+                    currentCalendarDate.setDate(currentCalendarDate.getDate() - 7);
+                    break;
+                case 'day':
+                    currentCalendarDate.setDate(currentCalendarDate.getDate() - 1);
+                    break;
+            }
+            setCalendarView(calendarViewMode);
+        }
+
+        function nextPeriod() {
+            switch(calendarViewMode) {
+                case 'month':
+                    currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
+                    break;
+                case 'week':
+                    currentCalendarDate.setDate(currentCalendarDate.getDate() + 7);
+                    break;
+                case 'day':
+                    currentCalendarDate.setDate(currentCalendarDate.getDate() + 1);
+                    break;
+            }
+            setCalendarView(calendarViewMode);
+        }
+
+        function displayWeekView(startOfWeek, appointments) {
+            const container = document.getElementById('appointments-container');
+            if (!container) {
+                console.error('appointments-container not found!');
+                return;
+            }
+            const dayNames = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
+            
+            // Woche-Titel erstellen
+            const weekEnd = new Date(startOfWeek);
+            weekEnd.setDate(startOfWeek.getDate() + 6);
+            const weekTitle = `${startOfWeek.getDate()}.${startOfWeek.getMonth() + 1} - ${weekEnd.getDate()}.${weekEnd.getMonth() + 1}.${weekEnd.getFullYear()}`;
+            
+            let html = `
+                <div class="calendar-container">
+                    <div class="calendar-header">
+                        <div class="calendar-navigation">
+                            <button class="calendar-nav-btn" onclick="previousPeriod()">‹ Vorheriger</button>
+                            <h2 class="calendar-title" id="calendar-title">${weekTitle}</h2>
+                            <button class="calendar-nav-btn" onclick="nextPeriod()">Nächster ›</button>
+                        </div>
+                        <div class="view-selector">
+                            <button class="view-btn" onclick="setCalendarView('month')" id="month-btn">📅 Monat</button>
+                            <button class="view-btn active" onclick="setCalendarView('week')" id="week-btn">📊 Woche</button>
+                            <button class="view-btn" onclick="setCalendarView('day')" id="day-btn">📋 Tag</button>
+                        </div>
+                    </div>
+                    <div class="week-view">
+                        <div class="week-header">
+                            <div class="time-column-header">Zeit</div>
+            `;
+            
+            // Header für jeden Tag der Woche
+            for (let i = 0; i < 7; i++) {
+                const day = new Date(startOfWeek);
+                day.setDate(startOfWeek.getDate() + i);
+                const isToday = day.toDateString() === new Date().toDateString();
+                
+                html += `
+                    <div class="week-day-header ${isToday ? 'today' : ''}">
+                        <div class="day-name">${dayNames[i]}</div>
+                        <div class="day-date">${day.getDate()}.${day.getMonth() + 1}</div>
+                    </div>
+                `;
+            }
+            
+            html += `</div><div class="week-body">`;
+            
+            // Termine für jeden Tag gruppieren
+            const dayColumns = [];
+            for (let i = 0; i < 7; i++) {
+                const day = new Date(startOfWeek);
+                day.setDate(startOfWeek.getDate() + i);
+                const dateStr = day.toISOString().split('T')[0];
+                dayColumns.push({
+                    date: dateStr,
+                    appointments: appointments.filter(apt => apt.startDateTime.split('T')[0] === dateStr)
+                });
+            }
+            
+            // Für jede Stunde eine Zeile
+            for (let hour = 0; hour <= 23; hour++) {
+                html += `
+                    <div class="week-time-row">
+                        <div class="time-slot">${hour.toString().padStart(2, '0')}:00</div>
+                `;
+                
+                // Für jeden Tag eine Spalte
+                for (let i = 0; i < 7; i++) {
+                    const dayColumn = dayColumns[i];
+                    
+                    html += `<div class="week-day-slot" onclick="showCreateModalForDateTime('${dayColumn.date}', ${hour})">`;
+                    
+                    // Termine finden, die in dieser Stunde aktiv sind (laufen)
+                    const activeAppointments = dayColumn.appointments.filter(apt => {
+                        const startDateTime = new Date(apt.startDateTime);
+                        const endDateTime = apt.endDateTime ? new Date(apt.endDateTime) : new Date(startDateTime.getTime() + 3600000);
+                        const startHour = startDateTime.getHours();
+                        const endHour = endDateTime.getHours();
+                        
+                        // Termin ist aktiv wenn er in dieser Stunde läuft
+                        return startHour <= hour && hour <= endHour;
+                    });
+                    
+                    activeAppointments.forEach(apt => {
+                        const startTime = apt.startDateTime.split('T')[1].substring(0, 5);
+                        const endTime = apt.endDateTime ? apt.endDateTime.split('T')[1].substring(0, 5) : '';
+                        
+                        // Berechne welcher Teil des Termins in dieser Stunde ist
+                        const startDateTime = new Date(apt.startDateTime);
+                        const endDateTime = apt.endDateTime ? new Date(apt.endDateTime) : new Date(startDateTime.getTime() + 3600000);
+                        const startHour = startDateTime.getHours();
+                        const endHour = endDateTime.getHours();
+                        
+                        // Unterschiedliche Darstellung je nach Position im Termin
+                        let blockClass = 'week-appointment-block';
+                        let showTime = '';
+                        
+                        if (hour === startHour && hour === endHour) {
+                            // Termin beginnt und endet in dieser Stunde
+                            showTime = `${startTime} - ${endTime}`;
+                            blockClass += ' single-hour';
+                        } else if (hour === startHour) {
+                            // Erste Stunde des Termins
+                            showTime = `${startTime} →`;
+                            blockClass += ' start-hour';
+                        } else if (hour === endHour) {
+                            // Letzte Stunde des Termins
+                            showTime = `→ ${endTime}`;
+                            blockClass += ' end-hour';
+                        } else {
+                            // Mittlere Stunde des Termins
+                            showTime = '←→';
+                            blockClass += ' middle-hour';
+                        }
+                        
+                        html += `
+                            <div class="${blockClass} ${apt.priority?.toLowerCase() || 'medium'}" 
+                                 onclick="event.stopPropagation(); editAppointment(${apt.id})">
+                                <div class="appointment-time" style="font-size: 9px; font-weight: bold;">${showTime}</div>
+                                <div class="appointment-title" style="font-size: 10px;">${hour === startHour ? apt.title : '...'}</div>
+                            </div>
+                        `;
+                    });
+                    
+                    html += `</div>`;
+                }
+                
+                html += `</div>`;
+            }
+            
+            html += `</div></div></div>`;
+            container.innerHTML = html;
+        }
+
+        function displayDayView(date, appointments) {
+            const container = document.getElementById('appointments-container');
+            if (!container) {
+                console.error('appointments-container not found!');
+                return;
+            }
+            
+            const dayTitle = `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`;
+            const dayName = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'][date.getDay()];
+            
+            let html = `
+                <div class="calendar-container">
+                    <div class="calendar-header">
+                        <div class="calendar-navigation">
+                            <button class="calendar-nav-btn" onclick="previousPeriod()">‹ Vorheriger</button>
+                            <h2 class="calendar-title" id="calendar-title">${dayName}, ${dayTitle}</h2>
+                            <button class="calendar-nav-btn" onclick="nextPeriod()">Nächster ›</button>
+                        </div>
+                        <div class="view-selector">
+                            <button class="view-btn" onclick="setCalendarView('month')" id="month-btn">📅 Monat</button>
+                            <button class="view-btn" onclick="setCalendarView('week')" id="week-btn">📊 Woche</button>
+                            <button class="view-btn active" onclick="setCalendarView('day')" id="day-btn">📋 Tag</button>
+                        </div>
+                    </div>
+                    <div class="day-view">
+                        <div class="day-header">
+                            <button class="btn btn-success" onclick="showCreateModal()">➕ Neuer Termin</button>
+                        </div>
+                        <div class="day-timeline">
+            `;
+            
+            // Zeitstunden von 0:00 bis 23:00 (24-Stunden-Format)
+            for (let hour = 0; hour <= 23; hour++) {
+                // Termine, die in dieser Stunde aktiv sind (laufen)
+                const activeAppointments = appointments.filter(apt => {
+                    const startDateTime = new Date(apt.startDateTime);
+                    const endDateTime = apt.endDateTime ? new Date(apt.endDateTime) : new Date(startDateTime.getTime() + 3600000);
+                    const startHour = startDateTime.getHours();
+                    const endHour = endDateTime.getHours();
+                    
+                    // Termin ist aktiv wenn er in dieser Stunde läuft
+                    return startHour <= hour && hour <= endHour;
+                });
+                
+                html += `
+                    <div class="day-hour-slot">
+                        <div class="hour-label">${hour.toString().padStart(2, '0')}:00</div>
+                        <div class="hour-content" onclick="showCreateModalForDateTime('${date.toISOString().split('T')[0]}', ${hour})">
+                `;
+                
+                activeAppointments.forEach(apt => {
+                    const startTime = apt.startDateTime.split('T')[1].substring(0, 5);
+                    const endTime = apt.endDateTime ? apt.endDateTime.split('T')[1].substring(0, 5) : '';
+                    
+                    // Berechne Position im Termin
+                    const startDateTime = new Date(apt.startDateTime);
+                    const endDateTime = apt.endDateTime ? new Date(apt.endDateTime) : new Date(startDateTime.getTime() + 3600000);
+                    const startHour = startDateTime.getHours();
+                    const endHour = endDateTime.getHours();
+                    
+                    // Unterschiedliche Darstellung je nach Position im Termin
+                    let blockClass = 'day-appointment-block';
+                    let showTime = '';
+                    let showTitle = apt.title;
+                    let showDescription = apt.description || '';
+                    let showLocation = apt.location || '';
+                    
+                    if (hour === startHour && hour === endHour) {
+                        // Termin beginnt und endet in dieser Stunde
+                        showTime = `${startTime} - ${endTime}`;
+                    } else if (hour === startHour) {
+                        // Erste Stunde des Termins - vollständige Info
+                        showTime = `${startTime} →`;
+                    } else if (hour === endHour) {
+                        // Letzte Stunde des Termins
+                        showTime = `→ ${endTime}`;
+                        showTitle = `${apt.title} (Ende)`;
+                        showDescription = '';
+                        showLocation = '';
+                    } else {
+                        // Mittlere Stunde des Termins
+                        showTime = '← läuft →';
+                        showTitle = `${apt.title} (läuft)`;
+                        showDescription = '';
+                        showLocation = '';
+                    }
+                    
+                    html += `
+                        <div class="${blockClass} ${apt.priority?.toLowerCase() || 'medium'}" 
+                             onclick="event.stopPropagation(); editAppointment(${apt.id})">
+                            <div class="appointment-header">
+                                <span class="appointment-time" style="font-weight: bold;">${showTime}</span>
+                                <span class="appointment-priority" style="font-size: 12px;">${apt.priority || 'Medium'}</span>
+                            </div>
+                            <div class="appointment-title" style="font-weight: bold; margin: 4px 0;">${showTitle}</div>
+                            ${showDescription ? `<div class="appointment-description" style="font-size: 12px; color: #666;">${showDescription}</div>` : ''}
+                            ${showLocation ? `<div class="appointment-location" style="font-size: 12px; color: #888;">📍 ${showLocation}</div>` : ''}
+                        </div>
+                    `;
+                });
+                
+                html += `</div></div>`;
+            }
+            
+            html += `</div></div></div>`;
+            container.innerHTML = html;
+        }
+
+        function showCreateModalForDateTime(dateStr, hour) {
+            // Setze Datum und Zeit im Modal
+            const startTime = `${hour.toString().padStart(2, '0')}:00`;
+            const endTime = `${(hour + 1).toString().padStart(2, '0')}:00`;
+            
+            showCreateModal();
+            
+            // Warte kurz, dann setze die Werte
+            setTimeout(() => {
+                document.getElementById('appointmentDate').value = dateStr;
+                document.getElementById('appointmentStartTime').value = startTime;
+                document.getElementById('appointmentEndTime').value = endTime;
+            }, 100);
         }
 
         function previousMonth() {
@@ -1230,7 +2257,10 @@
         }
 
         function showDayAppointments(dateStr, appointments) {
-            const date = new Date(dateStr);
+            // Korrigierte Datumserzeugung - lokale Zeitzone verwenden
+            const [year, month, day] = dateStr.split('-').map(Number);
+            const date = new Date(year, month - 1, day); // month - 1 weil JavaScript Monate 0-basiert sind
+            
             const formattedDate = date.toLocaleDateString('de-DE', {
                 weekday: 'long',
                 year: 'numeric',
@@ -1252,8 +2282,9 @@
             document.getElementById('modal-title').textContent = 'Neuer Termin';
             document.getElementById('appointmentForm').reset();
             
-            // Setze Datum auf den gewählten Tag, Zeit auf nächste volle Stunde
-            const selectedDate = new Date(dateStr);
+            // Korrigierte Datumserzeugung - lokale Zeitzone verwenden
+            const [year, month, day] = dateStr.split('-').map(Number);
+            const selectedDate = new Date(year, month - 1, day); // month - 1 weil JavaScript Monate 0-basiert sind
             const now = new Date();
             const startTime = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 
                                      now.getHours() + 1, 0, 0);
@@ -1270,36 +2301,34 @@
             event.preventDefault();
             
             try {
+                // Konvertiere datetime-local Format zu ISO DateTime mit Sekunden
+                const startDateTime = document.getElementById('startDateTime').value;
+                const endDateTime = document.getElementById('endDateTime').value;
+                
                 const appointmentData = {
                     title: document.getElementById('title').value,
                     description: document.getElementById('description').value,
-                    startDateTime: document.getElementById('startDateTime').value,
-                    endDateTime: document.getElementById('endDateTime').value,
+                    startDateTime: startDateTime + ':00', // Füge Sekunden hinzu für korrektes ISO Format
+                    endDateTime: endDateTime + ':00', // Füge Sekunden hinzu für korrektes ISO Format
                     location: document.getElementById('location').value,
                     category: document.getElementById('category').value,
                     priority: document.getElementById('priority').value,
                     reminderMinutes: parseInt(document.getElementById('reminderMinutes').value),
-                    colorCode: document.getElementById('colorCode').value,
-                    userId: 1 // Default user
+                    colorCode: document.getElementById('colorCode').value
+                    // userId wird vom Backend aus JWT-Token gesetzt
                 };
 
                 let response;
                 if (currentEditId) {
                     // Update existing appointment
-                    response = await fetch(`${API_BASE}/appointments/${currentEditId}`, {
+                    response = await authenticatedFetch(`${API_BASE}/appointments/${currentEditId}`, {
                         method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
                         body: JSON.stringify(appointmentData)
                     });
                 } else {
                     // Create new appointment
-                    response = await fetch(`${API_BASE}/appointments`, {
+                    response = await authenticatedFetch(`${API_BASE}/appointments`, {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
                         body: JSON.stringify(appointmentData)
                     });
                 }
@@ -1311,9 +2340,11 @@
                     loadStatisticsBar();
                 } else {
                     const errorData = await response.text();
+                    console.error('Save appointment error:', response.status, errorData);
                     showError('Fehler beim Speichern: ' + errorData);
                 }
             } catch (error) {
+                console.error('Save appointment exception:', error);
                 showError('Fehler beim Speichern: ' + error.message);
             }
         }
@@ -1324,7 +2355,7 @@
             }
 
             try {
-                const response = await fetch(`${API_BASE}/appointments/${id}`, {
+                const response = await authenticatedFetch(`${API_BASE}/appointments/${id}`, {
                     method: 'DELETE'
                 });
 
@@ -1358,9 +2389,14 @@
             let html = `<h2 style="margin-bottom: 20px; color: #333;">${title} (${appointments.length})</h2>`;
             html += '<div class="appointments-grid">';
             
-            appointments.forEach(appointment => {
+            appointments.forEach((appointment, index) => {
                 const priorityClass = `priority-${appointment.priority?.toLowerCase() || 'medium'}`;
                 const priorityText = getPriorityText(appointment.priority);
+                const appointmentId = `list-appointment-${index}`;
+                
+                // Speichere appointment in globaler Variable für späteren Zugriff
+                window.appointmentData = window.appointmentData || {};
+                window.appointmentData[appointmentId] = appointment;
                 
                 html += `
                     <div class="appointment-card ${priorityClass}" style="border-left-color: ${appointment.colorCode || '#007bff'}">
@@ -1375,7 +2411,7 @@
                                 </div>
                             </div>
                             <div class="appointment-actions">
-                                <button class="btn btn-warning" onclick="showEditModal(${JSON.stringify(appointment).replace(/"/g, '&quot;')})">
+                                <button class="btn btn-warning" onclick="showEditModalById('${appointmentId}')">
                                     ✏️ Bearbeiten
                                 </button>
                                 <button class="btn btn-danger" onclick="deleteAppointment(${appointment.id})">
@@ -1426,9 +2462,9 @@
             try {
                 // Lade verschiedene Statistiken
                 const [todayResponse, upcomingResponse, allResponse] = await Promise.all([
-                    fetch(`${API_BASE}/calendar/today`),
-                    fetch(`${API_BASE}/calendar/upcoming`),
-                    fetch(`${API_BASE}/appointments?size=100`)
+                    authenticatedFetch(`${API_BASE}/calendar/today`),
+                    authenticatedFetch(`${API_BASE}/calendar/upcoming`),
+                    authenticatedFetch(`${API_BASE}/appointments?size=100`)
                 ]);
 
                 const todayAppointments = await todayResponse.json();
@@ -1440,7 +2476,7 @@
                 const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
                 const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
                 
-                const holidayResponse = await fetch(`${API_BASE}/holidays/range?startDate=${startOfMonth.toISOString().split('T')[0]}&endDate=${endOfMonth.toISOString().split('T')[0]}`);
+                const holidayResponse = await authenticatedFetch(`${API_BASE}/holidays/range?startDate=${startOfMonth.toISOString().split('T')[0]}&endDate=${endOfMonth.toISOString().split('T')[0]}`);
                 const holidays = await holidayResponse.json();
 
                 // Update UI
@@ -1467,7 +2503,7 @@
                 const federalState = document.getElementById('federalStateSelect').value || null;
                 
                 // Lade Feiertage für dieses Jahr
-                const response = await fetch(`${API_BASE}/holidays/year/${now.getFullYear()}${federalState ? `?federalState=${federalState}` : ''}`);
+                const response = await authenticatedFetch(`${API_BASE}/holidays/year/${now.getFullYear()}${federalState ? `?federalState=${federalState}` : ''}`);
                 const holidays = await response.json();
 
                 let html = `
@@ -1508,7 +2544,7 @@
 
                 const federalState = document.getElementById('federalStateSelect').value || null;
                 
-                const statsResponse = await fetch(`${API_BASE}/calendar-view/statistics?startDate=${startOfMonth.toISOString().split('T')[0]}&endDate=${endOfMonth.toISOString().split('T')[0]}${federalState ? `&federalState=${federalState}` : ''}`);
+                const statsResponse = await authenticatedFetch(`${API_BASE}/calendar-view/statistics?startDate=${startOfMonth.toISOString().split('T')[0]}&endDate=${endOfMonth.toISOString().split('T')[0]}${federalState ? `&federalState=${federalState}` : ''}`);
                 const stats = await statsResponse.json();
 
                 let html = `
@@ -1641,6 +2677,11 @@
             `;
         }
 
+        function hideLoading() {
+            // Loading wird durch die jeweilige View ersetzt, daher ist diese Funktion leer
+            // aber sie muss existieren um Errors zu vermeiden
+        }
+
         function showSuccess(message) {
             const alertContainer = document.getElementById('alert-container');
             alertContainer.innerHTML = `<div class="alert alert-success">${message}</div>`;
@@ -1674,6 +2715,194 @@
             }
             if (event.target == statisticsModal) {
                 closeStatisticsModal();
+            }
+        }
+
+        // ===== ERINNERUNGS-SYSTEM =====
+        
+        let notificationService = {
+            isPermissionGranted: false,
+            reminderCheckInterval: null,
+            lastNotifiedAppointments: new Set(),
+            
+            // Initialisierung
+            async init() {
+                await this.requestNotificationPermission();
+                this.startReminderChecker();
+                console.log('📔 Erinnerungs-System gestartet');
+            },
+            
+            // Browser-Benachrichtigungs-Permission anfragen
+            async requestNotificationPermission() {
+                if (!('Notification' in window)) {
+                    console.warn('Dieser Browser unterstützt keine Benachrichtigungen');
+                    return false;
+                }
+                
+                if (Notification.permission === 'granted') {
+                    this.isPermissionGranted = true;
+                    return true;
+                }
+                
+                if (Notification.permission !== 'denied') {
+                    const permission = await Notification.requestPermission();
+                    this.isPermissionGranted = permission === 'granted';
+                    return this.isPermissionGranted;
+                }
+                
+                return false;
+            },
+            
+            // Periodische Überprüfung starten
+            startReminderChecker() {
+                // Prüfe alle 30 Sekunden
+                this.reminderCheckInterval = setInterval(() => {
+                    this.checkForReminders();
+                }, 30000);
+                
+                // Erste Prüfung sofort
+                this.checkForReminders();
+            },
+            
+            // Stoppe die Überprüfung
+            stopReminderChecker() {
+                if (this.reminderCheckInterval) {
+                    clearInterval(this.reminderCheckInterval);
+                    this.reminderCheckInterval = null;
+                }
+            },
+            
+            // Prüfe auf anstehende Termine
+            async checkForReminders() {
+                try {
+                    const token = localStorage.getItem('authToken');
+                    if (!token) {
+                        console.log('🔑 Kein Auth-Token gefunden - Erinnerungen übersprungen');
+                        return;
+                    }
+                    
+                    console.log('🔍 Prüfe Erinnerungen...');
+                    const response = await fetch('/api/v1/appointments/reminders', {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    console.log('📡 Response Status:', response.status, response.statusText);
+                    
+                    if (response.ok) {
+                        const reminders = await response.json();
+                        console.log('📋 Erhaltene Erinnerungen:', reminders);
+                        this.processReminders(reminders);
+                    } else {
+                        console.error('❌ Response nicht OK:', response.status, response.statusText);
+                        const errorText = await response.text();
+                        console.error('❌ Error Response Body:', errorText);
+                    }
+                } catch (error) {
+                    console.error('💥 Fehler beim Abrufen der Erinnerungen:', error);
+                    console.error('💥 Error Details:', {
+                        message: error.message,
+                        stack: error.stack,
+                        name: error.name
+                    });
+                }
+            },
+            
+            // Verarbeite Erinnerungen
+            processReminders(reminders) {
+                reminders.forEach(appointment => {
+                    const appointmentKey = `${appointment.id}-${appointment.startDateTime}`;
+                    
+                    // Zeige nur einmal pro Termin eine Benachrichtigung
+                    if (!this.lastNotifiedAppointments.has(appointmentKey)) {
+                        this.showNotification(appointment);
+                        this.lastNotifiedAppointments.add(appointmentKey);
+                    }
+                });
+            },
+            
+            // Zeige Browser-Benachrichtigung
+            showNotification(appointment) {
+                if (!this.isPermissionGranted) return;
+                
+                const startTime = new Date(appointment.startDateTime);
+                const timeStr = startTime.toLocaleTimeString('de-DE', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                const title = '⏰ Termin-Erinnerung';
+                const body = `${appointment.title}\n🕐 ${timeStr}${appointment.location ? `\n📍 ${appointment.location}` : ''}`;
+                const icon = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">📅</text></svg>';
+                
+                const notification = new Notification(title, {
+                    body: body,
+                    icon: icon,
+                    badge: icon,
+                    tag: `appointment-${appointment.id}`,
+                    requireInteraction: true
+                });
+                
+                // Click-Handler
+                notification.onclick = () => {
+                    window.focus();
+                    this.showAppointmentDetails(appointment);
+                    notification.close();
+                };
+                
+                // Auto-close nach 10 Sekunden
+                setTimeout(() => {
+                    notification.close();
+                }, 10000);
+                
+                console.log(`📔 Erinnerung gezeigt: ${appointment.title} um ${timeStr}`);
+            },
+            
+            // Zeige Termin-Details
+            showAppointmentDetails(appointment) {
+                // Fülle das Edit-Modal mit den Termindaten und zeige es
+                showEditModalById(appointment.id);
+            }
+        };
+        
+        // Starte das Erinnerungs-System nach dem Login
+        document.addEventListener('DOMContentLoaded', function() {
+            // Warte bis Authentifizierung abgeschlossen ist
+            setTimeout(() => {
+                const token = localStorage.getItem('authToken');
+                if (token) {
+                    checkNotificationPermission();
+                    notificationService.init();
+                }
+            }, 2000);
+        });
+
+        // Prüfe Notification-Permission und zeige Button falls nötig
+        function checkNotificationPermission() {
+            if (!('Notification' in window)) {
+                return; // Browser unterstützt keine Benachrichtigungen
+            }
+            
+            const notificationBtn = document.getElementById('notificationBtn');
+            if (Notification.permission === 'default') {
+                notificationBtn.style.display = 'inline-block';
+            } else if (Notification.permission === 'granted') {
+                notificationBtn.style.display = 'none';
+            }
+        }
+
+        // Manuelle Anfrage für Benachrichtigungs-Permission
+        async function requestNotificationPermission() {
+            const success = await notificationService.requestNotificationPermission();
+            const btn = document.getElementById('notificationBtn');
+            
+            if (success) {
+                btn.style.display = 'none';
+                showAlert('🔔 Erinnerungen aktiviert! Sie erhalten jetzt Browser-Benachrichtigungen für anstehende Termine.', 'alert-success');
+            } else {
+                showAlert('❌ Benachrichtigungen wurden verweigert. Sie können diese in den Browser-Einstellungen aktivieren.', 'alert-warning');
             }
         }
 

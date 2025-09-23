@@ -186,4 +186,19 @@ public class AppointmentController {
                     .body("Fehler beim Abrufen der Termine: " + e.getMessage());
         }
     }
+
+    /**
+     * GET /api/v1/appointments/reminders
+     * Termine abrufen, die eine Erinnerung benötigen (anstehende Termine)
+     */
+    @GetMapping("/reminders")
+    public ResponseEntity<Object> getUpcomingReminders() {
+        try {
+            List<AppointmentResponseDto> reminders = appointmentService.getUpcomingReminders();
+            return ResponseEntity.ok(reminders);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Fehler beim Abrufen der Erinnerungen: " + e.getMessage());
+        }
+    }
 }

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointment API Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        button { padding: 10px; margin: 5px; background: #007bff; color: white; border: none; cursor: pointer; }
+        .result { margin-top: 10px; padding: 10px; background: #f8f9fa; border: 1px solid #dee2e6; }
+        .error { color: red; }
+        .success { color: green; }
+        input, textarea, select { margin: 5px; padding: 8px; width: 200px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Appointment API Test Tool</h1>
+    
+    <div class="test-section">
+        <h3>🔐 Authentication Status</h3>
+        <button onclick="checkAuth()">Prüfe Authentifizierung</button>
+        <button onclick="testLogin()">Test Login</button>
+        <div id="authResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>📋 Termine laden</h3>
+        <button onclick="loadAppointments()">Alle Termine laden</button>
+        <button onclick="loadTodaysAppointments()">Heutige Termine</button>
+        <div id="loadResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>➕ Neuen Termin erstellen</h3>
+        <div>
+            <input type="text" id="newTitle" placeholder="Titel" value="Test Termin">
+            <input type="text" id="newDescription" placeholder="Beschreibung" value="Test Beschreibung">
+            <input type="datetime-local" id="newStart" value="2025-09-23T10:00">
+            <input type="datetime-local" id="newEnd" value="2025-09-23T11:00">
+            <input type="text" id="newLocation" placeholder="Ort" value="Büro">
+            <select id="newPriority">
+                <option value="LOW">Niedrig</option>
+                <option value="MEDIUM" selected>Mittel</option>
+                <option value="HIGH">Hoch</option>
+            </select>
+        </div>
+        <button onclick="createAppointment()">Termin erstellen</button>
+        <div id="createResult" class="result"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api/v1';
+
+        function getAuthHeaders() {
+            const token = localStorage.getItem('authToken');
+            return token ? {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            } : {
+                'Content-Type': 'application/json'
+            };
+        }
+
+        async function authenticatedFetch(url, options = {}) {
+            const authHeaders = getAuthHeaders();
+            
+            const config = {
+                ...options,
+                headers: {
+                    ...authHeaders,
+                    ...(options.headers || {})
+                }
+            };
+
+            return await fetch(url, config);
+        }
+
+        function showResult(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<p class="${type}">${message}</p>`;
+        }
+
+        async function checkAuth() {
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                showResult('authResult', '❌ Kein Token gefunden', 'error');
+                return;
+            }
+
+            try {
+                const response = await authenticatedFetch(`${API_BASE}/auth/validate`);
+                
+                if (response.ok) {
+                    const userResponse = await authenticatedFetch(`${API_BASE}/auth/me`);
+                    if (userResponse.ok) {
+                        const user = await userResponse.json();
+                        showResult('authResult', `✅ Angemeldet als: ${user.name} (${user.email})`, 'success');
+                    } else {
+                        showResult('authResult', `✅ Token gültig, aber User-Info fehlt`, 'success');
+                    }
+                } else {
+                    showResult('authResult', `❌ Token ungültig (${response.status})`, 'error');
+                }
+            } catch (error) {
+                showResult('authResult', `❌ Auth-Fehler: ${error.message}`, 'error');
+            }
+        }
+
+        async function testLogin() {
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: 'test@example.com',
+                        password: 'password123'
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    localStorage.setItem('authToken', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    showResult('authResult', `✅ Login erfolgreich: ${data.user.name}`, 'success');
+                } else {
+                    const error = await response.text();
+                    showResult('authResult', `❌ Login fehlgeschlagen: ${error}`, 'error');
+                }
+            } catch (error) {
+                showResult('authResult', `❌ Login-Fehler: ${error.message}`, 'error');
+            }
+        }
+
+        async function loadAppointments() {
+            try {
+                const response = await authenticatedFetch(`${API_BASE}/appointments?size=100`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    showResult('loadResult', `✅ ${data.totalElements} Termine geladen`, 'success');
+                    console.log('Appointments:', data);
+                } else {
+                    const error = await response.text();
+                    showResult('loadResult', `❌ Laden fehlgeschlagen (${response.status}): ${error}`, 'error');
+                }
+            } catch (error) {
+                showResult('loadResult', `❌ Netzwerk-Fehler: ${error.message}`, 'error');
+            }
+        }
+
+        async function loadTodaysAppointments() {
+            try {
+                const response = await authenticatedFetch(`${API_BASE}/calendar/today`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    showResult('loadResult', `✅ ${data.length} heutige Termine geladen`, 'success');
+                    console.log('Today appointments:', data);
+                } else {
+                    const error = await response.text();
+                    showResult('loadResult', `❌ Heutige Termine laden fehlgeschlagen (${response.status}): ${error}`, 'error');
+                }
+            } catch (error) {
+                showResult('loadResult', `❌ Netzwerk-Fehler: ${error.message}`, 'error');
+            }
+        }
+
+        async function createAppointment() {
+            try {
+                const appointmentData = {
+                    title: document.getElementById('newTitle').value,
+                    description: document.getElementById('newDescription').value,
+                    startDateTime: document.getElementById('newStart').value + ':00',
+                    endDateTime: document.getElementById('newEnd').value + ':00',
+                    location: document.getElementById('newLocation').value,
+                    priority: document.getElementById('newPriority').value,
+                    reminderMinutes: 15,
+                    colorCode: '#007bff'
+                };
+
+                console.log('Creating appointment:', appointmentData);
+
+                const response = await authenticatedFetch(`${API_BASE}/appointments`, {
+                    method: 'POST',
+                    body: JSON.stringify(appointmentData)
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    showResult('createResult', `✅ Termin erstellt: ${data.title}`, 'success');
+                    console.log('Created appointment:', data);
+                } else {
+                    const error = await response.text();
+                    console.error('Create error:', response.status, error);
+                    showResult('createResult', `❌ Erstellen fehlgeschlagen (${response.status}): ${error}`, 'error');
+                }
+            } catch (error) {
+                console.error('Create exception:', error);
+                showResult('createResult', `❌ Netzwerk-Fehler: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-check auth on load
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuth();
+        });
+    </script>
+</body>
+</html>

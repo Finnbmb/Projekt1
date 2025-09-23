@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>H2 Database Debug</title>
+</head>
+<body>
+    <h1>H2 Database Debug</h1>
+    <p><strong>Direkte Links:</strong></p>
+    <ul>
+        <li><a href="/h2-console" target="_blank">H2 Console</a></li>
+        <li><a href="/h2-console/" target="_blank">H2 Console mit Slash</a></li>
+    </ul>
+    
+    <p><strong>Verbindungsdetails:</strong></p>
+    <ul>
+        <li><strong>JDBC URL:</strong> jdbc:h2:mem:terminkalender</li>
+        <li><strong>Username:</strong> sa</li>
+        <li><strong>Password:</strong> (leer)</li>
+    </ul>
+    
+    <h2>Test API Endpunkte</h2>
+    <button onclick="testAuthEndpoint()">Test Auth Endpoint</button>
+    <button onclick="testAppointmentEndpoint()">Test Appointment Endpoint</button>
+    
+    <div id="results"></div>
+    
+    <script>
+        async function testAuthEndpoint() {
+            try {
+                const response = await fetch('/api/v1/auth/validate', {
+                    headers: {
+                        'Authorization': 'Bearer invalid-token'
+                    }
+                });
+                document.getElementById('results').innerHTML = `Auth Test: ${response.status} - ${await response.text()}`;
+            } catch (error) {
+                document.getElementById('results').innerHTML = `Auth Test Error: ${error.message}`;
+            }
+        }
+        
+        async function testAppointmentEndpoint() {
+            try {
+                const response = await fetch('/api/v1/appointments');
+                document.getElementById('results').innerHTML = `Appointment Test: ${response.status} - ${await response.text()}`;
+            } catch (error) {
+                document.getElementById('results').innerHTML = `Appointment Test Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

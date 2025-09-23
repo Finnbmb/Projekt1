@@ -5,7 +5,6 @@ import de.swtp1.terminkalender.entity.User;
 import de.swtp1.terminkalender.repository.AppointmentRepository;
 import de.swtp1.terminkalender.repository.UserRepository;
 import de.swtp1.terminkalender.service.HolidayService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
