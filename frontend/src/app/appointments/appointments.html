@@ -1,0 +1,72 @@
+<mat-toolbar color="primary">
+  <button mat-icon-button (click)="goBack()">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+  <span>📅 Termine verwalten</span>
+  <span class="spacer"></span>
+  <button mat-raised-button color="accent" (click)="openCreateDialog()">
+    <mat-icon>add</mat-icon>
+    Neuer Termin
+  </button>
+</mat-toolbar>
+
+<div class="appointments-container">
+  <mat-card *ngIf="isLoading()">
+    <mat-card-content>
+      <div class="loading-container">
+        <mat-spinner></mat-spinner>
+        <p>Termine werden geladen...</p>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card *ngIf="!isLoading() && appointments().length === 0">
+    <mat-card-content class="empty-state">
+      <mat-icon>event_busy</mat-icon>
+      <h3>Keine Termine vorhanden</h3>
+      <p>Erstellen Sie Ihren ersten Termin!</p>
+      <button mat-raised-button color="primary" (click)="openCreateDialog()">
+        <mat-icon>add</mat-icon>
+        Termin erstellen
+      </button>
+    </mat-card-content>
+  </mat-card>
+
+  <div class="appointments-grid" *ngIf="!isLoading() && appointments().length > 0">
+    <mat-card *ngFor="let appointment of appointments()" class="appointment-card">
+      <mat-card-header>
+        <mat-card-title>{{ appointment.title }}</mat-card-title>
+        <mat-card-subtitle>
+          <mat-icon>schedule</mat-icon>
+                              <div class="appointment-time">
+                      {{ formatDateTime(appointment.startDateTime) }} - {{ formatTime(appointment.endDateTime) }}
+                    </div>
+        </mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <p *ngIf="appointment.description">{{ appointment.description }}</p>
+        <div class="appointment-meta">
+          <span *ngIf="appointment.location" class="location">
+            <mat-icon>location_on</mat-icon>
+            {{ appointment.location }}
+          </span>
+          <mat-chip-set>
+            <mat-chip [color]="getPriorityColor(appointment.priority)">
+              {{ getPriorityLabel(appointment.priority) }}
+            </mat-chip>
+          </mat-chip-set>
+        </div>
+      </mat-card-content>
+      <mat-card-actions align="end">
+        <button mat-button color="primary" (click)="editAppointment(appointment)">
+          <mat-icon>edit</mat-icon>
+          Bearbeiten
+        </button>
+        <button mat-button color="warn" (click)="deleteAppointment(appointment)">
+          <mat-icon>delete</mat-icon>
+          Löschen
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>

@@ -1,0 +1,84 @@
+<!-- Dashboard Header -->
+<mat-toolbar color="primary">
+  <span>Terminkalender Dashboard</span>
+  <span class="spacer"></span>
+  <button mat-icon-button [matMenuTriggerFor]="userMenu">
+    <mat-icon>account_circle</mat-icon>
+  </button>
+  <mat-menu #userMenu="matMenu">
+    <div mat-menu-item disabled>
+      <mat-icon>person</mat-icon>
+      <span>{{ currentUser()?.username || 'Benutzer' }}</span>
+    </div>
+    <mat-divider></mat-divider>
+    <button mat-menu-item (click)="onLogout()">
+      <mat-icon>logout</mat-icon>
+      <span>Abmelden</span>
+    </button>
+  </mat-menu>
+</mat-toolbar>
+
+<!-- Dashboard Content -->
+<div class="container">
+  <div class="header-section">
+    <h1>Dashboard</h1>
+    <p class="date">{{ getCurrentDate() }}</p>
+  </div>
+
+  <!-- Statistik Cards -->
+  <div class="stats-grid">
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <div class="stat-icon today">
+            <mat-icon>today</mat-icon>
+          </div>
+          <div class="stat-info">
+            <h3>{{ todayCount }}</h3>
+            <p>Termine heute</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <div class="stat-icon week">
+            <mat-icon>date_range</mat-icon>
+          </div>
+          <div class="stat-info">
+            <h3>{{ weekCount }}</h3>
+            <p>Diese Woche</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <div class="stat-icon upcoming">
+            <mat-icon>schedule</mat-icon>
+          </div>
+          <div class="stat-info">
+            <h3>{{ upcomingCount }}</h3>
+            <p>Kommende Termine</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="actions-section">
+    <button mat-raised-button color="primary" (click)="createNewAppointment()">
+      <mat-icon>add</mat-icon>
+      Neuen Termin erstellen
+    </button>
+    <button mat-outlined-button (click)="goToAppointments()">
+      <mat-icon>list</mat-icon>
+      Termine verwalten
+    </button>
+  </div>
+</div>

@@ -1,0 +1,103 @@
+﻿<h2 mat-dialog-title>
+  {{ isEditMode ? 'Termin bearbeiten' : 'Neuer Termin' }}
+</h2>
+
+<form [formGroup]="appointmentForm" (ngSubmit)="onSubmit()">
+  <mat-dialog-content>
+    <div class="form-container">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Titel</mat-label>
+        <input matInput formControlName="title" placeholder="Titel des Termins">
+        <mat-error *ngIf="appointmentForm.get('title')?.hasError('required')">
+          Titel ist erforderlich
+        </mat-error>
+        <mat-error *ngIf="appointmentForm.get('title')?.hasError('maxlength')">
+          Titel darf maximal 100 Zeichen haben
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Beschreibung</mat-label>
+        <textarea matInput formControlName="description" rows="3" placeholder="Beschreibung (optional)"></textarea>
+        <mat-error *ngIf="appointmentForm.get('description')?.hasError('maxlength')">
+          Beschreibung darf maximal 500 Zeichen haben
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Start-Datum und Zeit -->
+      <div class="datetime-section">
+        <h4>Startzeit</h4>
+        <div class="datetime-row">
+          <mat-form-field appearance="outline" class="date-field">
+            <mat-label>Datum</mat-label>
+            <input matInput [matDatepicker]="startDatePicker" formControlName="startDate" readonly>
+            <mat-datepicker-toggle matIconSuffix [for]="startDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #startDatePicker></mat-datepicker>
+            <mat-error *ngIf="appointmentForm.get('startDate')?.hasError('required')">
+              Startdatum ist erforderlich
+            </mat-error>
+          </mat-form-field>
+
+          <div class="time-field">
+            <label class="time-label">Uhrzeit</label>
+            <input type="time" formControlName="startTime" step="900" class="native-time-input">
+            <div class="error-message" *ngIf="appointmentForm.get('startTime')?.hasError('required')">
+              Startzeit ist erforderlich
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- End-Datum und Zeit -->
+      <div class="datetime-section">
+        <h4>Endzeit</h4>
+        <div class="datetime-row">
+          <mat-form-field appearance="outline" class="date-field">
+            <mat-label>Datum</mat-label>
+            <input matInput [matDatepicker]="endDatePicker" formControlName="endDate" readonly>
+            <mat-datepicker-toggle matIconSuffix [for]="endDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #endDatePicker></mat-datepicker>
+            <mat-error *ngIf="appointmentForm.get('endDate')?.hasError('required')">
+              Enddatum ist erforderlich
+            </mat-error>
+          </mat-form-field>
+
+          <div class="time-field">
+            <label class="time-label">Uhrzeit</label>
+            <input type="time" formControlName="endTime" step="900" class="native-time-input">
+            <div class="error-message" *ngIf="appointmentForm.get('endTime')?.hasError('required')">
+              Endzeit ist erforderlich
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Ort</mat-label>
+        <input matInput formControlName="location" placeholder="Ort (optional)">
+        <mat-error *ngIf="appointmentForm.get('location')?.hasError('maxlength')">
+          Ort darf maximal 100 Zeichen haben
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Priorität</mat-label>
+        <mat-select formControlName="priority">
+          <mat-option *ngFor="let priority of priorities" [value]="priority.value">
+            {{ priority.label }}
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="appointmentForm.get('priority')?.hasError('required')">
+          Priorität ist erforderlich
+        </mat-error>
+      </mat-form-field>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" (click)="onCancel()">Abbrechen</button>
+    <button mat-raised-button color="primary" type="submit" [disabled]="!appointmentForm.valid">
+      {{ isEditMode ? 'Aktualisieren' : 'Erstellen' }}
+    </button>
+  </mat-dialog-actions>
+</form>

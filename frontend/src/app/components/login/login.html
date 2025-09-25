@@ -1,0 +1,183 @@
+<div class="login-container">
+  <!-- LOGIN FORM -->
+  @if (!showRegister() && !showForgotPassword()) {
+    <mat-card class="login-card">
+      <mat-card-header>
+        <mat-card-title>Terminkalender - Anmeldung</mat-card-title>
+        <mat-card-subtitle>Bitte melden Sie sich mit Ihren Anmeldedaten an</mat-card-subtitle>
+      </mat-card-header>
+    
+    <mat-card-content>
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Benutzername</mat-label>
+          <input matInput 
+                 formControlName="email" 
+                 placeholder="Geben Sie Ihren Benutzernamen ein"
+                 autocomplete="username">
+          @if (loginForm.get('email')?.touched && loginForm.get('email')?.invalid) {
+            <mat-error>{{ getFieldError('email') }}</mat-error>
+          }
+        </mat-form-field>
+        
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Passwort</mat-label>
+          <input matInput 
+                 type="password" 
+                 formControlName="password" 
+                 placeholder="Geben Sie Ihr Passwort ein"
+                 autocomplete="current-password">
+          @if (loginForm.get('password')?.touched && loginForm.get('password')?.invalid) {
+            <mat-error>{{ getFieldError('password') }}</mat-error>
+          }
+        </mat-form-field>
+        
+        @if (loginError()) {
+          <div class="error-message">
+            {{ loginError() }}
+          </div>
+        }
+      </form>
+    </mat-card-content>
+    
+    <mat-card-actions align="end">
+      <button mat-raised-button 
+              color="primary" 
+              type="submit" 
+              [disabled]="isLoading()"
+              (click)="onSubmit()"
+              class="login-button">
+        @if (isLoading()) {
+          <mat-spinner diameter="20" class="spinner-inline"></mat-spinner>
+          Anmeldung läuft...
+        } @else {
+          Anmelden
+        }
+      </button>
+    </mat-card-actions>
+    
+      <!-- Additional Actions -->
+      <mat-card-content class="additional-actions">
+        <div class="register-link">
+          <p>Noch kein Konto? <button type="button" class="link-button" (click)="showRegisterForm()">Jetzt registrieren</button></p>
+          <p><button type="button" class="link-button" (click)="showForgotPasswordForm()">🔑 Passwort vergessen?</button></p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  }
+
+  <!-- Register Form -->
+  @if (showRegister()) {
+    <mat-card class="login-card register-card">
+      <mat-card-header>
+        <mat-card-title>Terminkalender - Registrierung</mat-card-title>
+        <mat-card-subtitle>Erstellen Sie ein neues Konto</mat-card-subtitle>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <form [formGroup]="registerForm" (ngSubmit)="onRegister()" class="login-form">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Benutzername</mat-label>
+            <input matInput formControlName="username" placeholder="Gewünschter Benutzername">
+            <mat-error *ngIf="registerForm.get('username')?.hasError('required')">
+              Benutzername ist erforderlich
+            </mat-error>
+          </mat-form-field>
+          
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>E-Mail</mat-label>
+            <input matInput type="email" formControlName="email" placeholder="ihre@email.de">
+            <mat-error *ngIf="registerForm.get('email')?.hasError('required')">
+              E-Mail ist erforderlich
+            </mat-error>
+            <mat-error *ngIf="registerForm.get('email')?.hasError('email')">
+              Ungültige E-Mail-Adresse
+            </mat-error>
+          </mat-form-field>
+          
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Passwort</mat-label>
+            <input matInput type="password" formControlName="password" placeholder="Sicheres Passwort">
+            <mat-error *ngIf="registerForm.get('password')?.hasError('required')">
+              Passwort ist erforderlich
+            </mat-error>
+            <mat-error *ngIf="registerForm.get('password')?.hasError('minlength')">
+              Passwort muss mindestens 6 Zeichen haben
+            </mat-error>
+          </mat-form-field>
+          
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Passwort bestätigen</mat-label>
+            <input matInput type="password" formControlName="confirmPassword" placeholder="Passwort wiederholen">
+            <mat-error *ngIf="registerForm.get('confirmPassword')?.hasError('required')">
+              Passwort-Bestätigung ist erforderlich
+            </mat-error>
+          </mat-form-field>
+          
+          @if (registerError()) {
+            <div class="error-message">
+              {{ registerError() }}
+            </div>
+          }
+        </form>
+      </mat-card-content>
+      
+      <mat-card-actions align="end">
+        <button mat-button (click)="hideRegisterForm()">Abbrechen</button>
+        <button mat-raised-button 
+                color="primary" 
+                [disabled]="isLoading()"
+                (click)="onRegister()">
+          📝 Registrieren
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  }
+
+  <!-- Forgot Password Form -->
+  @if (showForgotPassword()) {
+    <mat-card class="login-card forgot-card">
+      <mat-card-header>
+        <mat-card-title>Passwort zurücksetzen</mat-card-title>
+        <mat-card-subtitle>Geben Sie Ihre E-Mail-Adresse ein</mat-card-subtitle>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <form [formGroup]="forgotPasswordForm" (ngSubmit)="onForgotPassword()" class="login-form">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>E-Mail</mat-label>
+            <input matInput type="email" formControlName="email" placeholder="ihre@email.de">
+            <mat-error *ngIf="forgotPasswordForm.get('email')?.hasError('required')">
+              E-Mail ist erforderlich
+            </mat-error>
+            <mat-error *ngIf="forgotPasswordForm.get('email')?.hasError('email')">
+              Ungültige E-Mail-Adresse
+            </mat-error>
+          </mat-form-field>
+          
+          @if (forgotPasswordError()) {
+            <div class="error-message">
+              {{ forgotPasswordError() }}
+            </div>
+          }
+          
+          @if (forgotPasswordSuccess()) {
+            <div class="success-message">
+              {{ forgotPasswordSuccess() }}
+            </div>
+          }
+        </form>
+      </mat-card-content>
+      
+      <mat-card-actions align="end">
+        <button mat-button (click)="hideForgotPasswordForm()">Abbrechen</button>
+        <button mat-raised-button 
+                color="primary" 
+                [disabled]="isLoading()"
+                (click)="onForgotPassword()">
+          🔑 Passwort zurücksetzen
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  }
+</div>

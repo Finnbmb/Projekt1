@@ -1,0 +1,172 @@
+﻿.appointment-dialog {.form-container {
+
+  width: 100%;  display: flex;
+
+  max-width: 500px;  flex-direction: column;
+
+  padding: 20px;  gap: 16px;
+
+}  min-width: 400px;
+
+  padding: 16px 0;
+
+.dialog-header {}
+
+  display: flex;
+
+  align-items: center;.full-width {
+
+  margin-bottom: 20px;  width: 100%;
+
+}}
+
+
+
+.dialog-header mat-icon {.datetime-section {
+
+  margin-right: 10px;  margin: 16px 0;
+
+  color: #1976d2;  
+
+}  h4 {
+
+    margin: 0 0 12px 0;
+
+.dialog-form {    color: rgba(0, 0, 0, 0.87);
+
+  display: flex;    font-size: 14px;
+
+  flex-direction: column;    font-weight: 500;
+
+  gap: 16px;  }
+
+}}
+
+
+
+.form-row {.datetime-row {
+
+  display: flex;  display: flex;
+
+  gap: 16px;  gap: 16px;
+
+}  align-items: flex-start;
+
+}
+
+.form-row mat-form-field {
+
+  flex: 1;.date-field {
+
+}  flex: 1;
+
+}
+
+.priority-group {
+
+  display: flex;.time-field {
+
+  gap: 12px;  flex: 1;
+
+  margin-top: 8px;  
+
+}  .time-label {
+
+    display: block;
+
+.dialog-actions {    margin-bottom: 8px;
+
+  display: flex;    color: rgba(0, 0, 0, 0.6);
+
+  justify-content: flex-end;    font-size: 12px;
+
+  gap: 12px;    font-weight: 400;
+
+  margin-top: 20px;    letter-spacing: 0.4px;
+
+  padding-top: 16px;  }
+
+  border-top: 1px solid rgba(0, 0, 0, 0.1);  
+
+}  .native-time-input {
+
+    width: 100%;
+
+@media (max-width: 600px) {    height: 56px;
+
+  .form-row {    padding: 16px 12px;
+
+    flex-direction: column;    border: 1px solid rgba(0, 0, 0, 0.12);
+
+  }    border-radius: 4px;
+
+      font-size: 16px;
+
+  .dialog-actions {    outline: none;
+
+    flex-direction: column-reverse;    transition: border-color 0.15s ease;
+
+  }    
+
+      &:focus {
+
+  .dialog-actions button {      border-color: #1976d2;
+
+    width: 100%;      border-width: 2px;
+
+  }    }
+
+}    
+    &:hover:not(:focus) {
+      border-color: rgba(0, 0, 0, 0.87);
+    }
+  }
+  
+  .error-message {
+    margin-top: 4px;
+    font-size: 12px;
+    color: #f44336;
+  }
+}
+
+.priority-field {
+  margin-top: 16px;
+}
+
+.error-message {
+  color: #f44336;
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+.success-message {
+  color: #4caf50;
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+// Dialog actions
+mat-dialog-actions {
+  padding: 16px 24px;
+  margin: 0 -24px -24px -24px;
+  
+  button {
+    margin-left: 8px;
+    
+    &:first-child {
+      margin-left: 0;
+    }
+  }
+}
+
+// Responsive Design
+@media (max-width: 600px) {
+  .form-container {
+    min-width: 300px;
+  }
+  
+  .datetime-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
