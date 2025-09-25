@@ -85,6 +85,25 @@ public class HolidayController {
     }
 
     /**
+     * Initialisiert Feiertage für die nächsten 5 Jahre (aktuelles Jahr + 4 weitere)
+     */
+    @PostMapping("/initialize")
+    public ResponseEntity<String> initializeAllHolidays() {
+        int currentYear = LocalDate.now().getYear();
+        int yearsInitialized = 0;
+        
+        for (int year = currentYear; year <= currentYear + 4; year++) {
+            holidayService.initializeGermanHolidays(year);
+            yearsInitialized++;
+        }
+        
+        return ResponseEntity.ok(
+            "Deutsche Feiertage für " + yearsInitialized + 
+            " Jahre erfolgreich initialisiert (" + currentYear + " - " + (currentYear + 4) + ")"
+        );
+    }
+
+    /**
      * Aktualisiert die Feiertage für das aktuelle Jahr
      */
     @PostMapping("/update-current-year")

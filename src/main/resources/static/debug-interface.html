@@ -33,8 +33,28 @@
     </div>
 
     <div class="test-section">
-        <h3>3. New Features Test</h3>
-        <button onclick="testHolidays()">Test Feiertage</button>
+        <h3>3. 🎉 Feiertage Tests</h3>
+        <div style="margin-bottom: 10px;">
+            <label>Jahr:</label>
+            <input type="number" id="holidayYear" value="2025" min="2020" max="2030" style="margin-left: 10px; padding: 5px; width: 80px;">
+            <label style="margin-left: 15px;">Bundesland:</label>
+            <select id="holidayState" style="margin-left: 10px; padding: 5px;">
+                <option value="">Alle</option>
+                <option value="NW">NRW</option>
+                <option value="BY">Bayern</option>
+                <option value="BW">Baden-Württemberg</option>
+            </select>
+        </div>
+        <button onclick="testHolidaysForYear()">Test Feiertage für Jahr</button>
+        <button onclick="testHolidayCheck()">Test Feiertag prüfen</button>
+        <button onclick="testHolidayInitialize()">Feiertage initialisieren</button>
+        <button onclick="testHolidayRange()">Test Datumsbereich</button>
+        <button onclick="openHolidayViewer()">🔍 Feiertage Viewer öffnen</button>
+        <div id="holidayResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>4. New Features Test</h3>
         <button onclick="testCalendarView()">Test Kalenderansicht</button>
         <button onclick="testNewAppointmentFields()">Test erweiterte Termine</button>
         <button onclick="testStatistics()">Test Statistiken</button>
@@ -42,7 +62,7 @@
     </div>
 
     <div class="test-section">
-        <h3>4. 🔐 Security & Authentication Tests</h3>
+        <h3>5. 🔐 Security & Authentication Tests</h3>
         <button onclick="testRegister()">Test Registrierung</button>
         <button onclick="testLogin()">Test Login</button>
         <button onclick="testTokenValidation()">Test Token-Validierung</button>
@@ -51,7 +71,7 @@
     </div>
 
     <div class="test-section">
-        <h3>5. 🔑 Password Reset Tests</h3>
+        <h3>6. 🔑 Password Reset Tests</h3>
         <div style="margin-bottom: 10px;">
             <label>E-Mail für Reset:</label>
             <input type="email" id="resetEmail" placeholder="test@example.com" value="admin@example.com" style="margin-left: 10px; padding: 5px;">
@@ -466,6 +486,103 @@
                 console.error('Show users error:', error);
                 showResult('passwordResetResult', `❌ Fehler beim Laden der Users: ${error.message}`, 'error');
             }
+        }
+
+        // Holiday Test Functions
+        async function testHolidaysForYear() {
+            const year = document.getElementById('holidayYear').value;
+            const state = document.getElementById('holidayState').value;
+            
+            try {
+                let url = `${API_BASE}/holidays/year/${year}`;
+                if (state) {
+                    url += `?federalState=${state}`;
+                }
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                console.log('Holidays for year:', data);
+                
+                if (response.ok) {
+                    const stateText = state ? ` (${state})` : ' (Alle Bundesländer)';
+                    showResult('holidayResult', `✅ Feiertage ${year}${stateText}: ${data.length} Feiertage gefunden`, 'success');
+                } else {
+                    showResult('holidayResult', `❌ Fehler beim Laden der Feiertage: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                console.error('Holiday year test error:', error);
+                showResult('holidayResult', `❌ Feiertage Jahr Fehler: ${error.message}`, 'error');
+            }
+        }
+
+        async function testHolidayCheck() {
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const response = await fetch(`${API_BASE}/holidays/check?date=${today}`);
+                const data = await response.json();
+                console.log('Holiday check:', data);
+                
+                if (response.ok) {
+                    const holidayText = data.isHoliday ? 
+                        `🎉 Heute ist ein Feiertag: ${data.holidays.map(h => h.name).join(', ')}` : 
+                        '📅 Heute ist kein Feiertag';
+                    showResult('holidayResult', `✅ Feiertag-Prüfung für ${today}: ${holidayText}`, 'success');
+                } else {
+                    showResult('holidayResult', `❌ Fehler bei Feiertag-Prüfung: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                console.error('Holiday check error:', error);
+                showResult('holidayResult', `❌ Feiertag-Prüfung Fehler: ${error.message}`, 'error');
+            }
+        }
+
+        async function testHolidayInitialize() {
+            try {
+                showResult('holidayResult', '⏳ Initialisiere deutsche Feiertage...', 'success');
+                
+                const response = await fetch(`${API_BASE}/holidays/initialize`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    const result = await response.text();
+                    showResult('holidayResult', `✅ Feiertage-Initialisierung: ${result}`, 'success');
+                } else {
+                    const error = await response.text();
+                    showResult('holidayResult', `❌ Fehler bei Initialisierung: ${error}`, 'error');
+                }
+            } catch (error) {
+                console.error('Holiday initialize error:', error);
+                showResult('holidayResult', `❌ Initialisierung Fehler: ${error.message}`, 'error');
+            }
+        }
+
+        async function testHolidayRange() {
+            try {
+                const today = new Date();
+                const nextMonth = new Date(today);
+                nextMonth.setMonth(nextMonth.getMonth() + 1);
+                
+                const startDate = today.toISOString().split('T')[0];
+                const endDate = nextMonth.toISOString().split('T')[0];
+                
+                const response = await fetch(`${API_BASE}/holidays/range?startDate=${startDate}&endDate=${endDate}`);
+                const data = await response.json();
+                console.log('Holiday range:', data);
+                
+                if (response.ok) {
+                    showResult('holidayResult', `✅ Feiertage nächster Monat (${startDate} - ${endDate}): ${data.length} Feiertage`, 'success');
+                } else {
+                    showResult('holidayResult', `❌ Fehler bei Datumsbereich: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                console.error('Holiday range error:', error);
+                showResult('holidayResult', `❌ Datumsbereich Fehler: ${error.message}`, 'error');
+            }
+        }
+
+        function openHolidayViewer() {
+            window.open('holiday-viewer.html', '_blank');
         }
 
         // Browser Console Info

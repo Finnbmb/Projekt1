@@ -43,6 +43,8 @@ public class SecurityConfig {
                 .requestMatchers("/debug-api/**").permitAll()
                 // Auth Endpunkte
                 .requestMatchers("/api/v1/auth/**").permitAll()
+                // Holiday API für öffentlichen Zugriff
+                .requestMatchers("/api/v1/holidays/**").permitAll()
                 // Statische Ressourcen
                 .requestMatchers("/login.html", "/index.html").permitAll()
                 .requestMatchers("/debug-interface.html", "/test-interface.html").permitAll()

@@ -17,6 +17,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { AppointmentService } from '../services/appointment.service';
+import { HolidayService, Holiday } from '../services/holiday.service';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -28,16 +29,20 @@ export type CalendarView = 'month' | 'week' | 'day';
 interface CalendarDay {
   date: Date;
   appointments: Appointment[];
+  holidays: Holiday[];
   isCurrentMonth: boolean;
   isToday: boolean;
   isSelected: boolean;
+  isHoliday: boolean;
 }
 
 interface WeekDay {
   date: Date;
   appointments: Appointment[];
+  holidays: Holiday[];
   dayName: string;
   dayNumber: number;
+  isHoliday: boolean;
 }
 
 @Component({
@@ -68,6 +73,7 @@ export class CalendarViewComponent implements OnInit {
   private router = inject(Router);
   private httpClient = inject(HttpClient);
   private appointmentService = inject(AppointmentService);
+  private holidayService = inject(HolidayService);
   private snackBar = inject(MatSnackBar);
   
   private readonly apiUrl = `${environment.apiUrl}/calendar`;
@@ -79,6 +85,7 @@ export class CalendarViewComponent implements OnInit {
   calendarDays = signal<CalendarDay[]>([]);
   weekDays = signal<WeekDay[]>([]);
   dayAppointments = signal<Appointment[]>([]);
+  dayHolidays = signal<Holiday[]>([]);
   selectedDate = signal<Date | null>(null);
   selectedAppointment = signal<Appointment | null>(null);
   showAppointmentForm = signal<boolean>(false);
@@ -172,8 +179,16 @@ export class CalendarViewComponent implements OnInit {
       const year = current.getFullYear();
       const month = current.getMonth() + 1;
 
-      const monthData = await this.getMonthView(year, month);
-      const calendarDays = this.generateMonthCalendarDays(year, month, monthData);
+      // Lade Termine und Feiertage parallel
+      const [monthData, holidays] = await Promise.all([
+        this.getMonthView(year, month),
+        firstValueFrom(this.holidayService.getHolidaysForMonth(year, month))
+      ]);
+
+      let calendarDays = this.generateMonthCalendarDays(year, month, monthData);
+      
+      // Füge Feiertage zu den entsprechenden Tagen hinzu
+      calendarDays = this.addHolidaysToCalendarDays(calendarDays, holidays);
       
       this.calendarDays.set(calendarDays);
     } catch (error) {
@@ -189,9 +204,17 @@ export class CalendarViewComponent implements OnInit {
     try {
       const current = this.currentDate();
       const startOfWeek = this.getStartOfWeek(current);
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(endOfWeek.getDate() + 6);
       
-      const weekData = await this.getWeekView(startOfWeek);
-      const weekDays = this.generateWeekDays(startOfWeek, weekData);
+      // Parallel loading von Terminen und Feiertagen
+      const [weekData, holidays] = await Promise.all([
+        this.getWeekView(startOfWeek),
+        firstValueFrom(this.holidayService.getHolidaysInRange(startOfWeek, endOfWeek))
+      ]);
+      
+      let weekDays = this.generateWeekDays(startOfWeek, weekData);
+      weekDays = this.addHolidaysToWeekDays(weekDays, holidays || []);
       
       this.weekDays.set(weekDays);
     } catch (error) {
@@ -206,9 +229,17 @@ export class CalendarViewComponent implements OnInit {
     this.isLoading.set(true);
     try {
       const current = this.currentDate();
-      const appointments = await this.getDayView(current);
+      
+      // Parallel loading von Terminen und Feiertagen für den Tag
+      const [appointments, allHolidays] = await Promise.all([
+        this.getDayView(current),
+        firstValueFrom(this.holidayService.getHolidaysInRange(current, current))
+      ]);
+      
+      const holidays = this.holidayService.getHolidaysForDate(current, allHolidays || []);
       
       this.dayAppointments.set(appointments);
+      this.dayHolidays.set(holidays);
     } catch (error) {
       console.error('Fehler beim Laden der Tagesansicht:', error);
       this.snackBar.open('Fehler beim Laden der Tagesansicht', 'OK', { duration: 3000 });
@@ -239,9 +270,11 @@ export class CalendarViewComponent implements OnInit {
         days.push({
           date: new Date(current),
           appointments: appointments,
+          holidays: [], // Wird später gefüllt
           isCurrentMonth: current.getMonth() === month - 1,
           isToday: this.isSameDay(current, today),
-          isSelected: false
+          isSelected: false,
+          isHoliday: false // Wird später gefüllt
         });
         
         current.setDate(current.getDate() + 1);
@@ -262,8 +295,10 @@ export class CalendarViewComponent implements OnInit {
       days.push({
         date: new Date(current),
         appointments: appointments,
+        holidays: [], // Wird später gefüllt
         dayName: this.weekDayNamesFull[current.getDay()],
-        dayNumber: current.getDate()
+        dayNumber: current.getDate(),
+        isHoliday: false // Wird später gefüllt
       });
       
       current.setDate(current.getDate() + 1);
@@ -493,5 +528,37 @@ export class CalendarViewComponent implements OnInit {
       console.error('Error fetching day view:', error);
       return [];
     }
+  }
+
+  // Holiday Integration Methods
+  private addHolidaysToCalendarDays(calendarDays: CalendarDay[], holidays: Holiday[]): CalendarDay[] {
+    calendarDays.forEach(day => {
+      const dayHolidays = this.holidayService.getHolidaysForDate(day.date, holidays);
+      day.holidays = dayHolidays;
+      day.isHoliday = dayHolidays.length > 0;
+    });
+    return calendarDays;
+  }
+
+  private addHolidaysToWeekDays(weekDays: WeekDay[], holidays: Holiday[]): WeekDay[] {
+    weekDays.forEach(day => {
+      const dayHolidays = this.holidayService.getHolidaysForDate(day.date, holidays);
+      day.holidays = dayHolidays;
+      day.isHoliday = dayHolidays.length > 0;
+    });
+    return weekDays;
+  }
+
+  // Holiday Helper Methods
+  getHolidayNames(holidays: Holiday[]): string {
+    return holidays.map(h => h.name).join(', ');
+  }
+
+  getHolidayColor(holiday: Holiday): string {
+    return this.holidayService.getHolidayTypeColor(holiday.type);
+  }
+
+  hasPublicHoliday(holidays: Holiday[]): boolean {
+    return holidays.some(h => h.type === 'PUBLIC');
   }
 }
