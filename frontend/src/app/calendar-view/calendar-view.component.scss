@@ -912,3 +912,139 @@
     font-size: 0.75rem;
   }
 }
+
+// Holiday Styles
+.calendar-day {
+  &.has-holidays {
+    background: linear-gradient(135deg, #fff5f5 0%, #ffe5e5 100%);
+    border: 1px solid #f56565;
+  }
+  
+  &.is-holiday {
+    background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
+    border: 2px solid #e53e3e;
+    
+    .day-number {
+      color: #c53030;
+      font-weight: 700;
+    }
+  }
+}
+
+.day-holidays {
+  margin-bottom: 4px;
+  
+  .holiday-preview {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 6px;
+    margin-bottom: 2px;
+    background: rgba(229, 62, 62, 0.1);
+    border-radius: 4px;
+    border-left: 3px solid #e53e3e;
+    font-size: 0.7rem;
+    color: #c53030;
+    
+    .holiday-icon {
+      font-size: 12px;
+      color: #f56565;
+    }
+    
+    .holiday-name {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+  
+  .more-holidays {
+    font-size: 0.6rem;
+    color: #a0aec0;
+    text-align: center;
+    padding: 2px;
+  }
+}
+
+// Week View Holiday Styles
+.week-day-header {
+  &.holiday {
+    background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
+    color: #c53030;
+    
+    .day-number {
+      font-weight: 700;
+    }
+  }
+  
+  .week-holiday-indicator {
+    display: flex;
+    justify-content: center;
+    margin-top: 2px;
+    
+    .holiday-icon-small {
+      font-size: 14px;
+      color: #f56565;
+    }
+  }
+}
+
+// Day View Holiday Styles
+.day-header {
+  .day-title-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    
+    h3 {
+      margin: 0;
+    }
+  }
+  
+  .day-holidays-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .day-holiday-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
+    border-radius: 8px;
+    border-left: 4px solid #e53e3e;
+    
+    .holiday-icon {
+      font-size: 24px;
+      color: #f56565;
+    }
+    
+    .holiday-details {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      
+      .holiday-name {
+        font-weight: 600;
+        color: #c53030;
+        font-size: 1rem;
+      }
+      
+      .holiday-state {
+        font-size: 0.875rem;
+        color: #a0aec0;
+        font-style: italic;
+      }
+      
+      .holiday-type {
+        font-size: 0.75rem;
+        color: #718096;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+    }
+  }
+}

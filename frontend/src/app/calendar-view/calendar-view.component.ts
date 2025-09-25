@@ -558,6 +558,10 @@ export class CalendarViewComponent implements OnInit {
     return this.holidayService.getHolidayTypeColor(holiday.type);
   }
 
+  getHolidayTypeDisplayName(type: Holiday['type']): string {
+    return this.holidayService.getHolidayTypeDisplayName(type);
+  }
+
   hasPublicHoliday(holidays: Holiday[]): boolean {
     return holidays.some(h => h.type === 'PUBLIC');
   }

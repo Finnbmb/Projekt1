@@ -108,9 +108,26 @@
         [class.other-month]="!day.isCurrentMonth"
         [class.today]="day.isToday"
         [class.has-appointments]="day.appointments.length > 0"
+        [class.has-holidays]="day.holidays && day.holidays.length > 0"
+        [class.is-holiday]="day.isHoliday"
         (click)="onDayClick(day)">
         
         <div class="day-number">{{ day.date.getDate() }}</div>
+        
+        <!-- Holiday Display -->
+        <div *ngIf="day.holidays && day.holidays.length > 0" class="day-holidays">
+          <div 
+            *ngFor="let holiday of day.holidays | slice:0:2" 
+            class="holiday-preview"
+            [style.border-left-color]="getHolidayColor(holiday)"
+            [matTooltip]="holiday.name + (holiday.federalState ? ' (' + holiday.federalState + ')' : '')">
+            <mat-icon class="holiday-icon">celebration</mat-icon>
+            <span class="holiday-name">{{ holiday.name }}</span>
+          </div>
+          <div *ngIf="day.holidays.length > 2" class="more-holidays">
+            +{{ day.holidays.length - 2 }} weitere Feiertage
+          </div>
+        </div>
         
         <div *ngIf="day.appointments.length > 0" class="day-appointments">
           <div 
@@ -149,9 +166,14 @@
         class="week-day-column">
         
         <!-- Day Header -->
-        <div class="week-day-header" [class.today]="isTodayDate(day.date)">
+        <div class="week-day-header" 
+             [class.today]="isTodayDate(day.date)"
+             [class.holiday]="day.isHoliday">
           <div class="day-name">{{ day.dayName.substring(0, 2) }}</div>
           <div class="day-number">{{ day.dayNumber }}</div>
+          <div *ngIf="day.holidays && day.holidays.length > 0" class="week-holiday-indicator">
+            <mat-icon class="holiday-icon-small">celebration</mat-icon>
+          </div>
         </div>
 
         <!-- Time Slots -->
@@ -189,7 +211,20 @@
     <div class="day-container">
       <!-- Day Header -->
       <div class="day-header">
-        <h3>{{ getViewTitle() }}</h3>
+        <div class="day-title-section">
+          <h3>{{ getViewTitle() }}</h3>
+          <!-- Holiday Display for Day View -->
+          <div *ngIf="dayHolidays() && dayHolidays().length > 0" class="day-holidays-info">
+            <div *ngFor="let holiday of dayHolidays()" class="day-holiday-card">
+              <mat-icon class="holiday-icon">celebration</mat-icon>
+              <div class="holiday-details">
+                <span class="holiday-name">{{ holiday.name }}</span>
+                <span *ngIf="holiday.federalState" class="holiday-state">({{ holiday.federalState }})</span>
+                <span class="holiday-type">{{ getHolidayTypeDisplayName(holiday.type) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
         <button mat-raised-button color="primary" (click)="openCreateDialog()">
           <mat-icon>add</mat-icon>
           Termin hinzufügen
