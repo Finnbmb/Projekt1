@@ -327,4 +327,31 @@ public class AuthService {
         
         userRepository.save(user);
     }
+
+    /**
+     * Benutzer löschen
+     */
+    public void deleteUser(Long userId) {
+        Optional<User> userOpt = userRepository.findById(userId);
+        if (userOpt.isEmpty()) {
+            throw new RuntimeException("Benutzer nicht gefunden");
+        }
+
+        User user = userOpt.get();
+        
+        // TODO: Hier könnten weitere Prüfungen hinzugefügt werden:
+        // - Prüfen ob es der letzte Admin ist
+        // - Termine des Benutzers behandeln (löschen oder übertragen)
+        
+        userRepository.delete(user);
+    }
+
+    /**
+     * Alle Benutzer auflisten
+     */
+    public java.util.List<AuthResponseDto.UserDto> getAllUsers() {
+        return userRepository.findAll().stream()
+                .map(user -> new AuthResponseDto.UserDto(user))
+                .collect(java.util.stream.Collectors.toList());
+    }
 }

@@ -88,6 +88,7 @@
         <button onclick="testResetPassword()">🔄 Passwort zurücksetzen</button>
         <button onclick="generateTestToken()">🔧 Test-Token generieren</button>
         <button onclick="showAllUsers()">👥 Alle Users anzeigen</button>
+        <a href="/user-management.html" target="_blank" style="background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block; margin-left: 10px;">🔧 User Management</a>
         <div id="passwordResetResult" class="result"></div>
     </div>
 
@@ -461,30 +462,53 @@
 
         async function showAllUsers() {
             try {
-                const response = await fetch(`${DEBUG_API_BASE}/users`);
+                const response = await fetch(`${API_BASE}/auth/users`);
                 const data = await response.json();
                 console.log('All users:', data);
 
                 if (response.ok) {
-                    let usersInfo = `📊 Gefundene Users: ${data.count}<br><br>`;
-                    data.users.forEach(user => {
+                    let usersInfo = `📊 Gefundene Users: ${data.length}<br><br>`;
+                    data.forEach(user => {
+                        usersInfo += `<div style="border: 1px solid #ddd; padding: 10px; margin: 5px 0; border-radius: 5px;">`;
                         usersInfo += `👤 <strong>${user.username}</strong> (${user.email})<br>`;
-                        usersInfo += `   ID: ${user.id}<br>`;
-                        if (user.hasResetToken) {
-                            usersInfo += `   🔑 Hat Reset Token (bis: ${new Date(user.resetTokenExpiry).toLocaleString()})<br>`;
-                        } else {
-                            usersInfo += `   ❌ Kein Reset Token<br>`;
-                        }
-                        usersInfo += `<br>`;
+                        usersInfo += `   ID: ${user.id} | Name: ${user.firstName || ''} ${user.lastName || ''}<br>`;
+                        usersInfo += `   Rolle: ${user.role}<br>`;
+                        usersInfo += `<button onclick="deleteUser(${user.id}, '${user.username}')" style="background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; margin-top: 5px;">🗑️ Löschen</button>`;
+                        usersInfo += `</div>`;
                     });
                     
                     showResult('passwordResetResult', usersInfo, 'success');
                 } else {
-                    showResult('passwordResetResult', `❌ Fehler beim Laden der Users: ${data.error}`, 'error');
+                    showResult('passwordResetResult', `❌ Fehler beim Laden der Users: ${data.message || 'Unbekannter Fehler'}`, 'error');
                 }
             } catch (error) {
                 console.error('Show users error:', error);
                 showResult('passwordResetResult', `❌ Fehler beim Laden der Users: ${error.message}`, 'error');
+            }
+        }
+
+        async function deleteUser(userId, username) {
+            if (!confirm(`Sind Sie sicher, dass Sie den Benutzer "${username}" (ID: ${userId}) löschen möchten?\n\nDiese Aktion kann nicht rückgängig gemacht werden!`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/users/${userId}`, {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+                console.log('Delete user response:', data);
+
+                if (response.ok) {
+                    showResult('passwordResetResult', `✅ Benutzer "${username}" wurde erfolgreich gelöscht!`, 'success');
+                    // Aktualisiere die Benutzerliste
+                    setTimeout(() => showAllUsers(), 1000);
+                } else {
+                    showResult('passwordResetResult', `❌ Fehler beim Löschen: ${data.message || 'Unbekannter Fehler'}`, 'error');
+                }
+            } catch (error) {
+                console.error('Delete user error:', error);
+                showResult('passwordResetResult', `❌ Fehler beim Löschen: ${error.message}`, 'error');
             }
         }
 

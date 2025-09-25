@@ -134,6 +134,33 @@ public class AuthController {
         }
     }
 
+    /**
+     * Benutzer löschen (nur für Admin-Interface)
+     */
+    @DeleteMapping("/users/{userId}")
+    public ResponseEntity<?> deleteUser(@PathVariable Long userId) {
+        try {
+            authService.deleteUser(userId);
+            return ResponseEntity.ok(new MessageResponse("Benutzer wurde erfolgreich gelöscht."));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(new ErrorResponse("Fehler beim Löschen des Benutzers: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Alle Benutzer auflisten (nur für Admin-Interface)
+     */
+    @GetMapping("/users")
+    public ResponseEntity<?> getAllUsers() {
+        try {
+            return ResponseEntity.ok(authService.getAllUsers());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(new ErrorResponse("Fehler beim Laden der Benutzer: " + e.getMessage()));
+        }
+    }
+
     // Helper Classes
     public static class ErrorResponse {
         private String message;

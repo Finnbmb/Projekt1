@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Terminkalender</title>
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --warning-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            --danger-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            --info-gradient: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            
+            --text-dark: #2c3e50;
+            --text-light: #6c757d;
+            --bg-light: #f8f9fa;
+            --border-color: #e9ecef;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-hover: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--primary-gradient);
+            min-height: 100vh;
+            color: var(--text-dark);
+        }
+
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: var(--primary-gradient);
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: var(--text-light);
+            margin-bottom: 20px;
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #d4edda;
+            color: #155724;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #28a745;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .service-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .service-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .service-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary-gradient);
+        }
+
+        .service-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .service-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .service-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .service-description {
+            color: var(--text-light);
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .service-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--secondary-gradient);
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--success-gradient);
+            color: white;
+        }
+
+        .btn-warning {
+            background: var(--warning-gradient);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger-gradient);
+            color: white;
+        }
+
+        .btn-info {
+            background: var(--info-gradient);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.9rem;
+        }
+
+        .quick-links {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: var(--shadow);
+            margin-top: 30px;
+        }
+
+        .quick-links h3 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .links-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .quick-link {
+            background: var(--bg-light);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 15px 20px;
+            text-decoration: none;
+            color: var(--text-dark);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .quick-link:hover {
+            background: #e9ecef;
+            border-color: #667eea;
+            transform: translateX(5px);
+        }
+
+        .link-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: var(--primary-gradient);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .back-to-app {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--primary-gradient);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .back-to-app:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .services-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .service-actions {
+                flex-direction: column;
+            }
+            
+            .btn {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>
+                🛠️ Admin Dashboard
+            </h1>
+            <p>Zentrale Verwaltung aller Terminkalender-Dienste</p>
+            <div class="status-indicator">
+                <div class="status-dot"></div>
+                System läuft
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="userCount">-</div>
+                <div class="stat-label">Benutzer</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="appointmentCount">-</div>
+                <div class="stat-label">Termine</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="holidayCount">-</div>
+                <div class="stat-label">Feiertage</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">5</div>
+                <div class="stat-label">Services</div>
+            </div>
+        </div>
+
+        <!-- Services Grid -->
+        <div class="services-grid">
+            <!-- User Management -->
+            <div class="service-card">
+                <div class="service-header">
+                    <div class="service-icon" style="background: var(--danger-gradient);">👥</div>
+                    <div class="service-title">Benutzer-Verwaltung</div>
+                </div>
+                <div class="service-description">
+                    Benutzerkonten verwalten, löschen und überwachen. Vollständige Kontrolle über alle registrierten Benutzer des Systems.
+                </div>
+                <div class="service-actions">
+                    <a href="/user-management.html" class="btn btn-danger">🔧 User Management</a>
+                    <button onclick="loadUserStats()" class="btn btn-secondary">📊 Statistiken</button>
+                </div>
+            </div>
+
+            <!-- Database Management -->
+            <div class="service-card">
+                <div class="service-header">
+                    <div class="service-icon" style="background: var(--success-gradient);">🗄️</div>
+                    <div class="service-title">Datenbank-Verwaltung</div>
+                </div>
+                <div class="service-description">
+                    Direkter Zugriff auf die Datenbank mit Web-Interface. Daten einsehen, bearbeiten und Backups verwalten.
+                </div>
+                <div class="service-actions">
+                    <a href="/azure-database-viewer.html" class="btn btn-success">🌐 DB Viewer</a>
+                    <a href="/database/view" class="btn btn-info">📋 Tabellen</a>
+                    <a href="/database/api/users" class="btn btn-warning">👤 Users API</a>
+                </div>
+            </div>
+
+            <!-- Holiday Management -->
+            <div class="service-card">
+                <div class="service-header">
+                    <div class="service-icon" style="background: var(--warning-gradient);">🎉</div>
+                    <div class="service-title">Feiertag-System</div>
+                </div>
+                <div class="service-description">
+                    Deutsche Feiertage verwalten und initialisieren. Bundeslandspezifische Feiertage und Kalenderjahre konfigurieren.
+                </div>
+                <div class="service-actions">
+                    <a href="/holiday-viewer.html" class="btn btn-warning">🎄 Holiday Viewer</a>
+                    <button onclick="initializeHolidays()" class="btn btn-success">⚡ Initialisieren</button>
+                    <button onclick="loadHolidayStats()" class="btn btn-info">📈 Statistiken</button>
+                </div>
+            </div>
+
+            <!-- Debug Tools -->
+            <div class="service-card">
+                <div class="service-header">
+                    <div class="service-icon" style="background: var(--primary-gradient);">🔧</div>
+                    <div class="service-title">Debug & Testing</div>
+                </div>
+                <div class="service-description">
+                    Entwickler-Tools zum Testen aller API-Endpunkte. Authentifizierung, Termine, Feiertage und mehr testen.
+                </div>
+                <div class="service-actions">
+                    <a href="/debug-interface.html" class="btn btn-primary">🛠️ Debug Interface</a>
+                    <a href="/test-interface.html" class="btn btn-secondary">🧪 Test Interface</a>
+                </div>
+            </div>
+
+            <!-- System Monitoring -->
+            <div class="service-card">
+                <div class="service-header">
+                    <div class="service-icon" style="background: var(--info-gradient);">📊</div>
+                    <div class="service-title">System-Monitoring</div>
+                </div>
+                <div class="service-description">
+                    System-Gesundheit überwachen, Metriken einsehen und Performance-Daten analysieren.
+                </div>
+                <div class="service-actions">
+                    <a href="/actuator/health" class="btn btn-info">💚 Health Check</a>
+                    <a href="/actuator/metrics" class="btn btn-success">📈 Metriken</a>
+                    <a href="/actuator/env" class="btn btn-warning">🔧 Environment</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="quick-links">
+            <h3>🔗 Schnellzugriff</h3>
+            <div class="links-grid">
+                <a href="/login.html" class="quick-link">
+                    <div class="link-icon">🔐</div>
+                    <div>
+                        <strong>Login Seite</strong><br>
+                        <small>Benutzer-Anmeldung</small>
+                    </div>
+                </a>
+                <a href="/index.html" class="quick-link">
+                    <div class="link-icon">🏠</div>
+                    <div>
+                        <strong>Startseite</strong><br>
+                        <small>Haupt-Interface</small>
+                    </div>
+                </a>
+                <a href="/password-reset.html" class="quick-link">
+                    <div class="link-icon">🔑</div>
+                    <div>
+                        <strong>Passwort Reset</strong><br>
+                        <small>Passwort zurücksetzen</small>
+                    </div>
+                </a>
+                <a href="/appointment-test.html" class="quick-link">
+                    <div class="link-icon">📅</div>
+                    <div>
+                        <strong>Termin Tests</strong><br>
+                        <small>Termine testen</small>
+                    </div>
+                </a>
+                <a href="/database-tools.html" class="quick-link">
+                    <div class="link-icon">🛠️</div>
+                    <div>
+                        <strong>DB Tools</strong><br>
+                        <small>Datenbank-Werkzeuge</small>
+                    </div>
+                </a>
+                <a href="/h2-debug.html" class="quick-link">
+                    <div class="link-icon">💾</div>
+                    <div>
+                        <strong>H2 Debug</strong><br>
+                        <small>H2-Datenbank Debug</small>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back to App Button -->
+    <a href="http://localhost:4200" class="back-to-app">
+        🚀 Zur Anwendung
+    </a>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api/v1';
+
+        // Load statistics when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAllStats();
+        });
+
+        async function loadAllStats() {
+            await Promise.all([
+                loadUserStats(),
+                loadHolidayStats(),
+                loadAppointmentStats()
+            ]);
+        }
+
+        async function loadUserStats() {
+            try {
+                const response = await fetch(`${API_BASE}/auth/users`);
+                if (response.ok) {
+                    const users = await response.json();
+                    document.getElementById('userCount').textContent = users.length;
+                }
+            } catch (error) {
+                console.warn('Could not load user stats:', error);
+                document.getElementById('userCount').textContent = '?';
+            }
+        }
+
+        async function loadHolidayStats() {
+            try {
+                const response = await fetch(`${API_BASE}/holidays/year/2025`);
+                if (response.ok) {
+                    const holidays = await response.json();
+                    document.getElementById('holidayCount').textContent = holidays.length;
+                }
+            } catch (error) {
+                console.warn('Could not load holiday stats:', error);
+                document.getElementById('holidayCount').textContent = '?';
+            }
+        }
+
+        async function loadAppointmentStats() {
+            try {
+                // This would need authentication, so we'll skip for now
+                document.getElementById('appointmentCount').textContent = '?';
+            } catch (error) {
+                console.warn('Could not load appointment stats:', error);
+                document.getElementById('appointmentCount').textContent = '?';
+            }
+        }
+
+        async function initializeHolidays() {
+            const result = confirm('Möchten Sie das Feiertag-System für die Jahre 2025-2030 initialisieren?\n\nDies kann einige Sekunden dauern.');
+            
+            if (!result) return;
+
+            try {
+                showNotification('Initialisiere Feiertage...', 'info');
+                
+                const response = await fetch(`${API_BASE}/holidays/initialize`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        years: [2025, 2026, 2027, 2028, 2029, 2030]
+                    })
+                });
+
+                if (response.ok) {
+                    showNotification('✅ Feiertage erfolgreich initialisiert!', 'success');
+                    loadHolidayStats(); // Update stats
+                } else {
+                    const error = await response.text();
+                    showNotification(`❌ Fehler: ${error}`, 'error');
+                }
+            } catch (error) {
+                console.error('Initialize holidays error:', error);
+                showNotification(`❌ Fehler: ${error.message}`, 'error');
+            }
+        }
+
+        function showNotification(message, type) {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 25px;
+                border-radius: 10px;
+                color: white;
+                font-weight: 600;
+                z-index: 1000;
+                max-width: 400px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                transition: all 0.3s ease;
+            `;
+
+            switch(type) {
+                case 'success':
+                    notification.style.background = 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)';
+                    break;
+                case 'error':
+                    notification.style.background = 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)';
+                    break;
+                case 'info':
+                    notification.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                    break;
+                default:
+                    notification.style.background = 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)';
+            }
+
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            // Remove after 5 seconds
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 5000);
+        }
+
+        // Add some interactive effects
+        document.querySelectorAll('.service-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-8px) scale(1.02)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+    </script>
+</body>
+</html>
