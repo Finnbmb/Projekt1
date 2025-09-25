@@ -67,113 +67,173 @@ import { Appointment, AppointmentRequest } from '../models/appointment.model';
 </mat-toolbar>
 
 <div class="container">
-  <mat-card>
+  <mat-card class="appointment-card">
     <mat-card-header>
-      <mat-card-title>{{ isEditing ? 'Termin bearbeiten' : 'Neuen Termin erstellen' }}</mat-card-title>
+      <mat-card-title class="form-title">
+        <mat-icon>event</mat-icon>
+        {{ isEditing ? 'Termin bearbeiten' : 'Neuen Termin erstellen' }}
+      </mat-card-title>
     </mat-card-header>
 
-    <mat-card-content>
+    <mat-card-content class="form-content">
       <form [formGroup]="appointmentForm" (ngSubmit)="onSubmit()">
-        <div class="form-row">
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Titel</mat-label>
-            <input matInput formControlName="title" placeholder="Terminbezeichnung">
-            <mat-error *ngIf="appointmentForm.get('title')?.invalid && appointmentForm.get('title')?.touched">
-              {{ getFieldError('title') }}
-            </mat-error>
-          </mat-form-field>
-        </div>
-
-        <div class="form-row">
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Beschreibung</mat-label>
-            <textarea matInput formControlName="description" rows="3" placeholder="Zusätzliche Informationen"></textarea>
-          </mat-form-field>
-        </div>
-
-        <div class="form-row">
-          <mat-form-field appearance="outline" class="half-width">
-            <mat-label>Startdatum</mat-label>
-            <input matInput [matDatepicker]="startDatePicker" formControlName="startDate">
-            <mat-datepicker-toggle matSuffix [for]="startDatePicker"></mat-datepicker-toggle>
-            <mat-datepicker #startDatePicker></mat-datepicker>
-            <mat-error *ngIf="appointmentForm.get('startDate')?.invalid && appointmentForm.get('startDate')?.touched">
-              {{ getFieldError('startDate') }}
-            </mat-error>
-          </mat-form-field>
-
-          <div class="time-container half-width">
-            <mat-form-field appearance="outline" class="time-field">
-              <mat-label>Stunde</mat-label>
-              <mat-select formControlName="startHour">
-                <mat-option *ngFor="let hour of hours" [value]="hour">{{ hour.toString().padStart(2, '0') }}</mat-option>
-              </mat-select>
+        
+        <!-- Basic Information Section -->
+        <div class="form-section">
+          <h3 class="section-title">
+            <mat-icon>info</mat-icon>
+            Grundinformationen
+          </h3>
+          
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Titel *</mat-label>
+              <input matInput formControlName="title" placeholder="z.B. Team Meeting, Arzttermin, etc.">
+              <mat-icon matSuffix>title</mat-icon>
+              <mat-error *ngIf="appointmentForm.get('title')?.invalid && appointmentForm.get('title')?.touched">
+                {{ getFieldError('title') }}
+              </mat-error>
             </mat-form-field>
-            <span class="time-separator">:</span>
-            <mat-form-field appearance="outline" class="time-field">
-              <mat-label>Minute</mat-label>
-              <mat-select formControlName="startMinute">
-                <mat-option *ngFor="let minute of minutes" [value]="minute">{{ minute.toString().padStart(2, '0') }}</mat-option>
-              </mat-select>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Beschreibung</mat-label>
+              <textarea matInput formControlName="description" rows="3" 
+                placeholder="Zusätzliche Informationen zum Termin..."></textarea>
+              <mat-icon matSuffix>description</mat-icon>
             </mat-form-field>
           </div>
         </div>
 
-        <div class="form-row">
-          <mat-form-field appearance="outline" class="half-width">
-            <mat-label>Enddatum</mat-label>
-            <input matInput [matDatepicker]="endDatePicker" formControlName="endDate">
-            <mat-datepicker-toggle matSuffix [for]="endDatePicker"></mat-datepicker-toggle>
-            <mat-datepicker #endDatePicker></mat-datepicker>
-            <mat-error *ngIf="appointmentForm.get('endDate')?.invalid && appointmentForm.get('endDate')?.touched">
-              {{ getFieldError('endDate') }}
-            </mat-error>
-          </mat-form-field>
+        <!-- Date and Time Section -->
+        <div class="form-section">
+          <h3 class="section-title">
+            <mat-icon>schedule</mat-icon>
+            Datum und Uhrzeit
+          </h3>
+          
+          <!-- Start Date and Time -->
+          <div class="datetime-group">
+            <h4 class="datetime-label">
+              <mat-icon class="datetime-icon">play_arrow</mat-icon>
+              Beginn
+            </h4>
+            <div class="datetime-row">
+              <mat-form-field appearance="outline" class="date-field">
+                <mat-label>Startdatum *</mat-label>
+                <input matInput [matDatepicker]="startDatePicker" formControlName="startDate" readonly>
+                <mat-datepicker-toggle matSuffix [for]="startDatePicker"></mat-datepicker-toggle>
+                <mat-datepicker #startDatePicker></mat-datepicker>
+                <mat-error *ngIf="appointmentForm.get('startDate')?.invalid && appointmentForm.get('startDate')?.touched">
+                  {{ getFieldError('startDate') }}
+                </mat-error>
+              </mat-form-field>
 
-          <div class="time-container half-width">
-            <mat-form-field appearance="outline" class="time-field">
-              <mat-label>Stunde</mat-label>
-              <mat-select formControlName="endHour">
-                <mat-option *ngFor="let hour of hours" [value]="hour">{{ hour.toString().padStart(2, '0') }}</mat-option>
-              </mat-select>
-            </mat-form-field>
-            <span class="time-separator">:</span>
-            <mat-form-field appearance="outline" class="time-field">
-              <mat-label>Minute</mat-label>
-              <mat-select formControlName="endMinute">
-                <mat-option *ngFor="let minute of minutes" [value]="minute">{{ minute.toString().padStart(2, '0') }}</mat-option>
-              </mat-select>
-            </mat-form-field>
+              <div class="time-group">
+                <mat-form-field appearance="outline" class="time-field">
+                  <mat-label>Stunde</mat-label>
+                  <mat-select formControlName="startHour">
+                    <mat-option *ngFor="let hour of hours" [value]="hour">
+                      {{ hour.toString().padStart(2, '0') }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+                <span class="time-separator">:</span>
+                <mat-form-field appearance="outline" class="time-field">
+                  <mat-label>Minute</mat-label>
+                  <mat-select formControlName="startMinute">
+                    <mat-option *ngFor="let minute of minutes" [value]="minute">
+                      {{ minute.toString().padStart(2, '0') }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+            </div>
+          </div>
+
+          <!-- End Date and Time -->
+          <div class="datetime-group">
+            <h4 class="datetime-label">
+              <mat-icon class="datetime-icon">stop</mat-icon>
+              Ende
+            </h4>
+            <div class="datetime-row">
+              <mat-form-field appearance="outline" class="date-field">
+                <mat-label>Enddatum *</mat-label>
+                <input matInput [matDatepicker]="endDatePicker" formControlName="endDate" readonly>
+                <mat-datepicker-toggle matSuffix [for]="endDatePicker"></mat-datepicker-toggle>
+                <mat-datepicker #endDatePicker></mat-datepicker>
+                <mat-error *ngIf="appointmentForm.get('endDate')?.invalid && appointmentForm.get('endDate')?.touched">
+                  {{ getFieldError('endDate') }}
+                </mat-error>
+              </mat-form-field>
+
+              <div class="time-group">
+                <mat-form-field appearance="outline" class="time-field">
+                  <mat-label>Stunde</mat-label>
+                  <mat-select formControlName="endHour">
+                    <mat-option *ngFor="let hour of hours" [value]="hour">
+                      {{ hour.toString().padStart(2, '0') }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+                <span class="time-separator">:</span>
+                <mat-form-field appearance="outline" class="time-field">
+                  <mat-label>Minute</mat-label>
+                  <mat-select formControlName="endMinute">
+                    <mat-option *ngFor="let minute of minutes" [value]="minute">
+                      {{ minute.toString().padStart(2, '0') }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="form-row">
-          <mat-form-field appearance="outline" class="half-width">
-            <mat-label>Ort</mat-label>
-            <input matInput formControlName="location" placeholder="Ort oder Online">
-          </mat-form-field>
+        <!-- Additional Details Section -->
+        <div class="form-section">
+          <h3 class="section-title">
+            <mat-icon>settings</mat-icon>
+            Zusätzliche Details
+          </h3>
+          
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Ort</mat-label>
+              <input matInput formControlName="location" placeholder="z.B. Konferenzraum A, Online, etc.">
+              <mat-icon matSuffix>location_on</mat-icon>
+            </mat-form-field>
 
-          <mat-form-field appearance="outline" class="half-width">
-            <mat-label>Priorität</mat-label>
-            <mat-select formControlName="priority">
-              <mat-option *ngFor="let priority of priorities" [value]="priority.value">
-                {{ priority.label }}
-              </mat-option>
-            </mat-select>
-            <mat-error *ngIf="appointmentForm.get('priority')?.invalid && appointmentForm.get('priority')?.touched">
-              {{ getFieldError('priority') }}
-            </mat-error>
-          </mat-form-field>
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Priorität *</mat-label>
+              <mat-select formControlName="priority">
+                <mat-option *ngFor="let priority of priorities" [value]="priority.value">
+                  <mat-icon [style.color]="getPriorityColor(priority.value)">
+                    {{ getPriorityIcon(priority.value) }}
+                  </mat-icon>
+                  {{ priority.label }}
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="appointmentForm.get('priority')?.invalid && appointmentForm.get('priority')?.touched">
+                {{ getFieldError('priority') }}
+              </mat-error>
+            </mat-form-field>
+          </div>
         </div>
       </form>
     </mat-card-content>
 
-    <mat-card-actions align="end">
-      <button mat-button type="button" (click)="onCancel()" [disabled]="isLoading">
+    <mat-card-actions class="form-actions">
+      <button mat-button type="button" (click)="onCancel()" [disabled]="isLoading" class="cancel-btn">
+        <mat-icon>cancel</mat-icon>
         Abbrechen
       </button>
-      <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="isLoading || appointmentForm.invalid">
+      <button mat-raised-button color="primary" (click)="onSubmit()" 
+              [disabled]="isLoading || appointmentForm.invalid" class="submit-btn">
         <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
+        <mat-icon *ngIf="!isLoading">{{ isEditing ? 'update' : 'add' }}</mat-icon>
         {{ isEditing ? 'Aktualisieren' : 'Erstellen' }}
       </button>
     </mat-card-actions>
@@ -181,16 +241,55 @@ import { Appointment, AppointmentRequest } from '../models/appointment.model';
 </div>`,
   styles: [`
     .container {
-      max-width: 800px;
-      margin: 20px auto;
-      padding: 0 20px;
+      padding: 20px;
+      max-width: 900px;
+      margin: 0 auto;
+      background: #f5f5f5;
+      min-height: calc(100vh - 64px);
     }
 
+    .appointment-card {
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .form-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 1.5rem;
+      color: #1976d2;
+    }
+
+    .form-content {
+      padding: 24px !important;
+    }
+
+    /* Section Styling */
+    .form-section {
+      margin-bottom: 32px;
+      padding: 20px;
+      background: #fafafa;
+      border-radius: 8px;
+      border-left: 4px solid #1976d2;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 20px 0;
+      font-size: 1.2rem;
+      color: #1976d2;
+      font-weight: 500;
+    }
+
+    /* Form Layout */
     .form-row {
       display: flex;
-      gap: 16px;
-      margin-bottom: 16px;
-      align-items: flex-start;
+      gap: 20px;
+      margin-bottom: 20px;
     }
 
     .full-width {
@@ -201,54 +300,142 @@ import { Appointment, AppointmentRequest } from '../models/appointment.model';
       flex: 1;
     }
 
-    mat-card {
-      margin-bottom: 20px;
+    /* Date and Time Styling */
+    .datetime-group {
+      margin-bottom: 24px;
+      padding: 16px;
+      background: white;
+      border-radius: 8px;
+      border: 1px solid #e0e0e0;
     }
 
-    mat-card-content {
-      padding: 24px;
-    }
-
-    mat-card-actions {
-      padding: 16px 24px;
-      gap: 8px;
-    }
-
-    mat-form-field {
-      margin-bottom: 16px;
-    }
-
-    .form-row:last-child {
-      margin-bottom: 0;
-    }
-
-    .time-container {
+    .datetime-label {
       display: flex;
       align-items: center;
       gap: 8px;
+      margin: 0 0 12px 0;
+      font-size: 1rem;
+      color: #424242;
+      font-weight: 500;
+    }
+
+    .datetime-icon {
+      font-size: 20px;
+      color: #1976d2;
+    }
+
+    .datetime-row {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .date-field {
+      flex: 2;
+      min-width: 200px;
+    }
+
+    .time-group {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 120px;
     }
 
     .time-field {
-      flex: 1;
-      margin-bottom: 16px;
+      width: 70px;
     }
 
     .time-separator {
-      font-size: 18px;
+      font-size: 20px;
       font-weight: bold;
       color: #666;
-      margin-bottom: 16px;
+      margin-top: 8px;
     }
 
+    /* Enhanced Form Fields */
+    ::ng-deep .mat-mdc-form-field {
+      margin-bottom: 8px;
+    }
+
+    ::ng-deep .mat-mdc-form-field.date-field .mat-mdc-form-field-flex {
+      background-color: white;
+    }
+
+    ::ng-deep .mat-mdc-form-field-outline {
+      border-radius: 8px;
+    }
+
+    /* Priority Icons */
+    ::ng-deep .mat-mdc-option .mat-icon {
+      margin-right: 8px;
+    }
+
+    /* Actions */
+    .form-actions {
+      padding: 20px 24px;
+      background: #f8f9fa;
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    .cancel-btn {
+      min-width: 120px;
+    }
+
+    .submit-btn {
+      min-width: 140px;
+    }
+
+    .submit-btn mat-spinner {
+      margin-right: 8px;
+    }
+
+    /* Responsive Design */
     @media (max-width: 768px) {
+      .container {
+        padding: 10px;
+      }
+
       .form-row {
         flex-direction: column;
-        gap: 0;
+        gap: 12px;
       }
-      
-      .half-width {
+
+      .datetime-row {
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .date-field,
+      .time-group {
+        width: 100%;
+        min-width: unset;
+      }
+
+      .time-group {
+        justify-content: center;
+      }
+
+      .form-actions {
+        flex-direction: column;
+      }
+
+      .cancel-btn,
+      .submit-btn {
         width: 100%;
       }
+    }
+
+    /* Success/Error States */
+    ::ng-deep .mat-mdc-form-field.mat-form-field-invalid .mat-mdc-form-field-outline-thick {
+      border-color: #f44336;
+    }
+
+    ::ng-deep .mat-mdc-form-field:not(.mat-form-field-invalid) .mat-mdc-form-field-outline-thick {
+      border-color: #1976d2;
     }
   `]
 })
@@ -477,5 +664,23 @@ export class AppointmentFormComponent implements OnInit {
       priority: 'Priorität'
     };
     return labels[fieldName] || fieldName;
+  }
+
+  getPriorityIcon(priority: string): string {
+    switch (priority) {
+      case 'HIGH': return 'priority_high';
+      case 'MEDIUM': return 'flag';
+      case 'LOW': return 'low_priority';
+      default: return 'flag';
+    }
+  }
+
+  getPriorityColor(priority: string): string {
+    switch (priority) {
+      case 'HIGH': return '#f44336';
+      case 'MEDIUM': return '#ff9800';
+      case 'LOW': return '#4caf50';
+      default: return '#757575';
+    }
   }
 }
