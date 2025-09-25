@@ -50,6 +50,27 @@
         <div id="authResult" class="result"></div>
     </div>
 
+    <div class="test-section">
+        <h3>5. 🔑 Password Reset Tests</h3>
+        <div style="margin-bottom: 10px;">
+            <label>E-Mail für Reset:</label>
+            <input type="email" id="resetEmail" placeholder="test@example.com" value="admin@example.com" style="margin-left: 10px; padding: 5px;">
+        </div>
+        <div style="margin-bottom: 10px;">
+            <label>Reset Token:</label>
+            <input type="text" id="resetToken" placeholder="Token aus E-Mail" style="margin-left: 10px; padding: 5px; width: 300px;">
+        </div>
+        <div style="margin-bottom: 10px;">
+            <label>Neues Passwort:</label>
+            <input type="password" id="newPassword" placeholder="Neues Passwort" value="newpassword123" style="margin-left: 10px; padding: 5px;">
+        </div>
+        <button onclick="testForgotPassword()">📧 Passwort vergessen</button>
+        <button onclick="testResetPassword()">🔄 Passwort zurücksetzen</button>
+        <button onclick="generateTestToken()">🔧 Test-Token generieren</button>
+        <button onclick="showAllUsers()">👥 Alle Users anzeigen</button>
+        <div id="passwordResetResult" class="result"></div>
+    </div>
+
     <script>
         const API_BASE = 'http://localhost:8080/api/v1';
         const DEBUG_API_BASE = 'http://localhost:8080/debug-api';
@@ -305,6 +326,145 @@
             } catch (error) {
                 console.error('Current user error:', error);
                 showResult('authResult', `❌ Aktueller User Fehler: ${error.message}`, 'error');
+            }
+        }
+
+        // Password Reset Functions
+        async function testForgotPassword() {
+            try {
+                const email = document.getElementById('resetEmail').value;
+                if (!email) {
+                    showResult('passwordResetResult', `❌ Bitte E-Mail-Adresse eingeben`, 'error');
+                    return;
+                }
+
+                const response = await fetch(`${API_BASE}/auth/forgot-password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email })
+                });
+
+                const data = await response.json();
+                console.log('Forgot password response:', data);
+
+                if (response.ok) {
+                    showResult('passwordResetResult', `✅ Passwort vergessen: ${data.message}`, 'success');
+                } else {
+                    showResult('passwordResetResult', `❌ Passwort vergessen Fehler: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                console.error('Forgot password error:', error);
+                showResult('passwordResetResult', `❌ Passwort vergessen Fehler: ${error.message}`, 'error');
+            }
+        }
+
+        async function testResetPassword() {
+            try {
+                const token = document.getElementById('resetToken').value;
+                const newPassword = document.getElementById('newPassword').value;
+                
+                if (!token || !newPassword) {
+                    showResult('passwordResetResult', `❌ Bitte Token und neues Passwort eingeben`, 'error');
+                    return;
+                }
+
+                const response = await fetch(`${API_BASE}/auth/reset-password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        token: token,
+                        newPassword: newPassword 
+                    })
+                });
+
+                const data = await response.json();
+                console.log('Reset password response:', data);
+
+                if (response.ok) {
+                    showResult('passwordResetResult', `✅ Passwort zurücksetzen: ${data.message}`, 'success');
+                } else {
+                    showResult('passwordResetResult', `❌ Passwort zurücksetzen Fehler: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                console.error('Reset password error:', error);
+                showResult('passwordResetResult', `❌ Passwort zurücksetzen Fehler: ${error.message}`, 'error');
+            }
+        }
+
+        async function generateTestToken() {
+            try {
+                const testEmail = 'admin@example.com';
+                
+                // Erst Passwort-Reset-Token anfordern
+                const resetResponse = await fetch(`${API_BASE}/auth/forgot-password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: testEmail })
+                });
+
+                const resetData = await resetResponse.json();
+                console.log('Test token response:', resetData);
+
+                if (resetResponse.ok) {
+                    showResult('passwordResetResult', `✅ Token angefordert für ${testEmail}`, 'success');
+                    
+                    // Jetzt den generierten Token aus der Debug-API abrufen
+                    setTimeout(async () => {
+                        try {
+                            const tokenResponse = await fetch(`${DEBUG_API_BASE}/password-reset-token/${testEmail}`);
+                            const tokenData = await tokenResponse.json();
+                            console.log('Token data:', tokenData);
+
+                            if (tokenResponse.ok && tokenData.token) {
+                                document.getElementById('resetToken').value = tokenData.token;
+                                showResult('passwordResetResult', 
+                                    `🎯 Token generiert und eingefügt: ${tokenData.token.substring(0, 20)}...
+                                    <br>📧 Email: ${tokenData.email}
+                                    <br>⏰ Gültig bis: ${new Date(tokenData.tokenExpiry).toLocaleString()}
+                                    <br>✅ Token wurde automatisch in das Token-Feld eingetragen!`, 'success');
+                            } else {
+                                showResult('passwordResetResult', `❌ Token nicht verfügbar: ${tokenData.error || 'Unbekannter Fehler'}`, 'error');
+                            }
+                        } catch (error) {
+                            console.error('Get token error:', error);
+                            showResult('passwordResetResult', `❌ Fehler beim Abrufen des Tokens: ${error.message}`, 'error');
+                        }
+                    }, 1000); // 1 Sekunde warten, damit Token generiert wird
+                } else {
+                    showResult('passwordResetResult', `❌ Token-Anfrage Fehler: ${resetData.message}`, 'error');
+                }
+            } catch (error) {
+                console.error('Generate test token error:', error);
+                showResult('passwordResetResult', `❌ Test-Token Fehler: ${error.message}`, 'error');
+            }
+        }
+
+        async function showAllUsers() {
+            try {
+                const response = await fetch(`${DEBUG_API_BASE}/users`);
+                const data = await response.json();
+                console.log('All users:', data);
+
+                if (response.ok) {
+                    let usersInfo = `📊 Gefundene Users: ${data.count}<br><br>`;
+                    data.users.forEach(user => {
+                        usersInfo += `👤 <strong>${user.username}</strong> (${user.email})<br>`;
+                        usersInfo += `   ID: ${user.id}<br>`;
+                        if (user.hasResetToken) {
+                            usersInfo += `   🔑 Hat Reset Token (bis: ${new Date(user.resetTokenExpiry).toLocaleString()})<br>`;
+                        } else {
+                            usersInfo += `   ❌ Kein Reset Token<br>`;
+                        }
+                        usersInfo += `<br>`;
+                    });
+                    
+                    showResult('passwordResetResult', usersInfo, 'success');
+                } else {
+                    showResult('passwordResetResult', `❌ Fehler beim Laden der Users: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                console.error('Show users error:', error);
+                showResult('passwordResetResult', `❌ Fehler beim Laden der Users: ${error.message}`, 'error');
             }
         }
 

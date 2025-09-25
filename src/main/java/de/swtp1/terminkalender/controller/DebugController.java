@@ -244,4 +244,67 @@ public class DebugController {
         
         return ResponseEntity.ok(status);
     }
+
+    // Password Reset Debug Functions
+    @Autowired
+    private de.swtp1.terminkalender.repository.UserRepository userRepository;
+
+    /**
+     * Gibt den letzten generierten Password Reset Token für einen User zurück
+     * ACHTUNG: Nur für Development! Nie in Production verwenden!
+     */
+    @GetMapping("/password-reset-token/{email}")
+    public ResponseEntity<?> getLastPasswordResetToken(@PathVariable String email) {
+        try {
+            var userOptional = userRepository.findByEmail(email);
+            if (userOptional.isEmpty()) {
+                Map<String, String> response = new HashMap<>();
+                response.put("error", "User nicht gefunden");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            var user = userOptional.get();
+            Map<String, Object> response = new HashMap<>();
+            response.put("email", email);
+            response.put("token", user.getPasswordResetToken());
+            response.put("tokenExpiry", user.getPasswordResetTokenExpiry());
+            response.put("hasToken", user.getPasswordResetToken() != null);
+            response.put("message", "Debug: Password Reset Token abgerufen");
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, String> response = new HashMap<>();
+            response.put("error", "Fehler beim Abrufen des Tokens: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    /**
+     * Zeigt alle verfügbaren Users für Debug-Zwecke
+     */
+    @GetMapping("/users")
+    public ResponseEntity<?> getAllUsers() {
+        try {
+            var users = userRepository.findAll();
+            Map<String, Object> response = new HashMap<>();
+            response.put("count", users.size());
+            response.put("users", users.stream().map(user -> {
+                Map<String, Object> userInfo = new HashMap<>();
+                userInfo.put("id", user.getId());
+                userInfo.put("email", user.getEmail());
+                userInfo.put("username", user.getUsername());
+                userInfo.put("hasResetToken", user.getPasswordResetToken() != null);
+                if (user.getPasswordResetToken() != null) {
+                    userInfo.put("resetTokenExpiry", user.getPasswordResetTokenExpiry());
+                }
+                return userInfo;
+            }).toList());
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, String> response = new HashMap<>();
+            response.put("error", "Fehler beim Abrufen der Users: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
 }

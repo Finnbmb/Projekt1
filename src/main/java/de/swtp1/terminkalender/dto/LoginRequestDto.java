@@ -1,6 +1,5 @@
 package de.swtp1.terminkalender.dto;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
@@ -9,9 +8,8 @@ import jakarta.validation.constraints.Size;
  */
 public class LoginRequestDto {
 
-    @NotBlank(message = "E-Mail ist erforderlich")
-    @Email(message = "Ungültige E-Mail-Adresse")
-    private String email;
+    @NotBlank(message = "E-Mail oder Username ist erforderlich")
+    private String email; // Kann sowohl E-Mail als auch Username sein
 
     @NotBlank(message = "Passwort ist erforderlich")
     @Size(min = 6, message = "Passwort muss mindestens 6 Zeichen lang sein")

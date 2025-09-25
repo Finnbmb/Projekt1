@@ -106,6 +106,34 @@ public class AuthController {
         }
     }
 
+    /**
+     * Passwort vergessen - E-Mail mit Reset-Link senden
+     */
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordRequest request) {
+        try {
+            authService.sendPasswordResetEmail(request.getEmail());
+            return ResponseEntity.ok(new MessageResponse("Falls ein Konto mit dieser E-Mail-Adresse existiert, wurde eine E-Mail mit weiteren Anweisungen gesendet."));
+        } catch (Exception e) {
+            // Aus Sicherheitsgründen immer die gleiche Nachricht zurückgeben
+            return ResponseEntity.ok(new MessageResponse("Falls ein Konto mit dieser E-Mail-Adresse existiert, wurde eine E-Mail mit weiteren Anweisungen gesendet."));
+        }
+    }
+
+    /**
+     * Passwort zurücksetzen mit Token
+     */
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
+        try {
+            authService.resetPassword(request.getToken(), request.getNewPassword());
+            return ResponseEntity.ok(new MessageResponse("Passwort wurde erfolgreich zurückgesetzt."));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(new ErrorResponse("Ungültiger oder abgelaufener Reset-Token."));
+        }
+    }
+
     // Helper Classes
     public static class ErrorResponse {
         private String message;
@@ -133,5 +161,22 @@ public class AuthController {
         public void setMessage(String message) { this.message = message; }
         public long getTimestamp() { return timestamp; }
         public void setTimestamp(long timestamp) { this.timestamp = timestamp; }
+    }
+
+    public static class ForgotPasswordRequest {
+        private String email;
+
+        public String getEmail() { return email; }
+        public void setEmail(String email) { this.email = email; }
+    }
+
+    public static class ResetPasswordRequest {
+        private String token;
+        private String newPassword;
+
+        public String getToken() { return token; }
+        public void setToken(String token) { this.token = token; }
+        public String getNewPassword() { return newPassword; }
+        public void setNewPassword(String newPassword) { this.newPassword = newPassword; }
     }
 }

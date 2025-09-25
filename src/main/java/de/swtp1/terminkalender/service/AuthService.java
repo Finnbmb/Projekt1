@@ -32,6 +32,9 @@ public class AuthService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired(required = false)
+    private EmailService emailService;
+
     // JWT Secret - in Produktion aus Environment Variable laden!
     private final SecretKey jwtSecret = Keys.secretKeyFor(SignatureAlgorithm.HS512);
     private final int jwtExpirationMs = 86400000; // 24 Stunden
@@ -40,10 +43,15 @@ public class AuthService {
      * Benutzer-Login
      */
     public AuthResponseDto login(LoginRequestDto loginRequest) {
-        // Benutzer suchen
+        // Benutzer suchen - erst nach Email, dann nach Username
         Optional<User> userOpt = userRepository.findByEmail(loginRequest.getEmail());
         if (userOpt.isEmpty()) {
-            throw new RuntimeException("Ungültige E-Mail oder Passwort");
+            // Falls Email nicht gefunden, versuche Username
+            userOpt = userRepository.findByUsername(loginRequest.getEmail());
+        }
+        
+        if (userOpt.isEmpty()) {
+            throw new RuntimeException("Ungültige E-Mail/Username oder Passwort");
         }
 
         User user = userOpt.get();
@@ -206,5 +214,117 @@ public class AuthService {
      */
     public boolean isTokenValid(String token) {
         return validateToken(token);
+    }
+
+    /**
+     * Token validieren und Claims zurückgeben
+     */
+    private Claims validateTokenAndGetClaims(String token) {
+        try {
+            return Jwts.parserBuilder()
+                    .setSigningKey(jwtSecret)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * Spezieller Token-Generator für Password Reset mit angepasster Gültigkeit
+     */
+    private String generateResetToken(Long userId, String email, int expirationMs) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + expirationMs);
+
+        return Jwts.builder()
+                .setSubject(email)
+                .claim("userId", userId)
+                .claim("type", "password_reset")
+                .setIssuedAt(now)
+                .setExpiration(expiryDate)
+                .signWith(jwtSecret)
+                .compact();
+    }
+
+    /**
+     * E-Mail für Passwort-Reset senden
+     */
+    @Transactional
+    public void sendPasswordResetEmail(String email) {
+        System.out.println("DEBUG: sendPasswordResetEmail called for: " + email);
+        
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        if (userOpt.isEmpty()) {
+            System.out.println("DEBUG: User not found for email: " + email);
+            // Aus Sicherheitsgründen keine Fehlermeldung, wenn E-Mail nicht existiert
+            return;
+        }
+
+        User user = userOpt.get();
+        System.out.println("DEBUG: User found: " + user.getUsername() + " (ID: " + user.getId() + ")");
+        
+        // Reset-Token generieren (60 Minuten gültig)
+        String resetToken = generateResetToken(user.getId(), user.getEmail(), 3600000); // 1 Stunde
+        System.out.println("DEBUG: Generated reset token (length): " + resetToken.length());
+        
+        // Reset-Token und Ablaufzeit in der Datenbank speichern
+        user.setPasswordResetToken(resetToken);
+        user.setPasswordResetTokenExpiry(LocalDateTime.now().plusHours(1));
+        User savedUser = userRepository.save(user);
+        System.out.println("DEBUG: Token saved to database. HasToken: " + (savedUser.getPasswordResetToken() != null));
+
+        // E-Mail senden in separater Transaktion (darf DB-Speicherung nicht beeinflussen)
+        try {
+            if (emailService != null) {
+                System.out.println("DEBUG: EmailService available, sending email...");
+                emailService.sendPasswordResetEmail(email, resetToken);
+                System.out.println("DEBUG: Email sent successfully");
+            } else {
+                System.out.println("DEBUG: EmailService not available (development mode)");
+            }
+        } catch (Exception e) {
+            System.out.println("DEBUG: Email sending failed, but token was saved: " + e.getMessage());
+            // Token bleibt gespeichert, auch wenn E-Mail fehlschlägt
+        }
+    }
+
+    /**
+     * Passwort mit Reset-Token zurücksetzen
+     */
+    public void resetPassword(String resetToken, String newPassword) {
+        // Token validieren
+        Claims claims = validateTokenAndGetClaims(resetToken);
+        if (claims == null) {
+            throw new RuntimeException("Ungültiger Reset-Token");
+        }
+
+        Long userId = claims.get("userId", Long.class);
+        Optional<User> userOpt = userRepository.findById(userId);
+        if (userOpt.isEmpty()) {
+            throw new RuntimeException("Benutzer nicht gefunden");
+        }
+
+        User user = userOpt.get();
+
+        // Prüfen ob der Token mit dem in der DB gespeicherten übereinstimmt
+        if (!resetToken.equals(user.getPasswordResetToken())) {
+            throw new RuntimeException("Ungültiger Reset-Token");
+        }
+
+        // Prüfen ob Token noch gültig ist
+        if (user.getPasswordResetTokenExpiry() == null || 
+            user.getPasswordResetTokenExpiry().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Reset-Token ist abgelaufen");
+        }
+
+        // Passwort aktualisieren
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setPasswordResetToken(null);
+        user.setPasswordResetTokenExpiry(null);
+        user.setLastPasswordChange(LocalDateTime.now());
+        
+        userRepository.save(user);
     }
 }

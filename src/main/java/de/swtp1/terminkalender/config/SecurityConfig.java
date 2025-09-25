@@ -28,12 +28,15 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationFilter jwtFilter) throws Exception {
         http
-            .csrf(csrf -> csrf.disable())  // CSRF komplett deaktivieren
+            .csrf(csrf -> csrf.disable())
+            .headers(headers -> headers
+                .frameOptions(frame -> frame.sameOrigin())
+            )
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authz -> authz
-                // H2-Console als ERSTE Regel - höchste Priorität
-                .requestMatchers("/h2-console", "/h2-console/**").permitAll()
+                // Actuator Endpoints für Monitoring
+                .requestMatchers("/actuator/**").permitAll()
                 // Database Controller für direkten DB-Zugriff
                 .requestMatchers("/database/**").permitAll()
                 // Debug API für Testing ohne Auth
@@ -41,7 +44,7 @@ public class SecurityConfig {
                 // Auth Endpunkte
                 .requestMatchers("/api/v1/auth/**").permitAll()
                 // Statische Ressourcen
-                .requestMatchers("/login.html", "/index.html", "/h2-debug.html").permitAll()
+                .requestMatchers("/login.html", "/index.html").permitAll()
                 .requestMatchers("/debug-interface.html", "/test-interface.html").permitAll()
                 .requestMatchers("/static/**", "/css/**", "/js/**", "/").permitAll()
                 .requestMatchers("/*.html").permitAll()  // Alle HTML-Dateien
@@ -50,9 +53,7 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             // JWT Filter vor Username/Password Filter hinzufügen
-            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-            // Headers komplett deaktivieren für H2
-            .headers(headers -> headers.disable());
+            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

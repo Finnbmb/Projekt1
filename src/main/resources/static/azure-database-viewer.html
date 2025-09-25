@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Azure MySQL Database Viewer - Terminkalender</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2196F3, #21CBF3);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: #f5f5f5;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 15px 20px;
+            cursor: pointer;
+            text-align: center;
+            background: #f5f5f5;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border-right: 1px solid #ddd;
+        }
+
+        .nav-tab:last-child {
+            border-right: none;
+        }
+
+        .nav-tab.active {
+            background: white;
+            color: #2196F3;
+            border-bottom: 3px solid #2196F3;
+        }
+
+        .nav-tab:hover:not(.active) {
+            background: #e9e9e9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card h3 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .stat-card p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .table-header {
+            background: #f8f9fa;
+            padding: 20px;
+            border-bottom: 2px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-header h3 {
+            color: #495057;
+            font-size: 1.3em;
+        }
+
+        .refresh-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s ease;
+        }
+
+        .refresh-btn:hover {
+            background: #218838;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge.active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge.inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .badge.admin {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge.user {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 5px solid #dc3545;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 5px solid #28a745;
+        }
+
+        .connection-info {
+            background: #e3f2fd;
+            border: 1px solid #90caf9;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .connection-info h4 {
+            color: #1976d2;
+            margin-bottom: 10px;
+        }
+
+        .connection-info p {
+            margin: 5px 0;
+            color: #424242;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #2196F3;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🗄️ Azure MySQL Database Viewer</h1>
+            <p>Terminkalender Datenbank-Management</p>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('overview')">📊 Übersicht</button>
+            <button class="nav-tab" onclick="showTab('users')">👥 Benutzer</button>
+            <button class="nav-tab" onclick="showTab('appointments')">📅 Termine</button>
+            <button class="nav-tab" onclick="showTab('connection')">🔗 Verbindung</button>
+        </div>
+
+        <div class="content">
+            <!-- Übersicht Tab -->
+            <div id="overview" class="tab-pane active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3 id="userCount">-</h3>
+                        <p>Benutzer gesamt</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="appointmentCount">-</h3>
+                        <p>Termine gesamt</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="activeUserCount">-</h3>
+                        <p>Aktive Benutzer</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="todayAppointments">-</h3>
+                        <p>Termine heute</p>
+                    </div>
+                </div>
+                <div class="connection-info">
+                    <h4>🌐 Azure MySQL Verbindung</h4>
+                    <p><strong>Server:</strong> dbotk25.mysql.database.azure.com</p>
+                    <p><strong>Datenbank:</strong> terminkalender</p>
+                    <p><strong>Status:</strong> <span id="connectionStatus">Verbunden ✅</span></p>
+                    <p><strong>Letzte Aktualisierung:</strong> <span id="lastUpdate">-</span></p>
+                </div>
+            </div>
+
+            <!-- Benutzer Tab -->
+            <div id="users" class="tab-pane">
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3>👥 Benutzer-Verwaltung</h3>
+                        <button class="refresh-btn" onclick="loadUsers()">🔄 Aktualisieren</button>
+                    </div>
+                    <input type="text" class="search-box" id="userSearch" placeholder="🔍 Benutzer suchen..." onkeyup="filterUsers()">
+                    <div id="usersContent">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <p>Lade Benutzer...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Termine Tab -->
+            <div id="appointments" class="tab-pane">
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3>📅 Termin-Verwaltung</h3>
+                        <button class="refresh-btn" onclick="loadAppointments()">🔄 Aktualisieren</button>
+                    </div>
+                    <input type="text" class="search-box" id="appointmentSearch" placeholder="🔍 Termine suchen..." onkeyup="filterAppointments()">
+                    <div id="appointmentsContent">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <p>Lade Termine...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Verbindung Tab -->
+            <div id="connection" class="tab-pane">
+                <div class="connection-info">
+                    <h4>🔗 Datenbankverbindung Details</h4>
+                    <p><strong>Typ:</strong> Azure MySQL Flexible Server</p>
+                    <p><strong>Host:</strong> dbotk25.mysql.database.azure.com</p>
+                    <p><strong>Port:</strong> 3306</p>
+                    <p><strong>Datenbank:</strong> terminkalender</p>
+                    <p><strong>SSL:</strong> Aktiviert</p>
+                    <p><strong>Zeitzone:</strong> UTC</p>
+                    <p><strong>Profil:</strong> Production</p>
+                </div>
+                
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3>📋 System-Informationen</h3>
+                        <button class="refresh-btn" onclick="loadSystemInfo()">🔄 Aktualisieren</button>
+                    </div>
+                    <div id="systemInfo">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <p>Lade System-Informationen...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let usersData = [];
+        let appointmentsData = [];
+
+        // Tab-Wechsel
+        function showTab(tabName) {
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+            
+            // Daten laden wenn Tab gewechselt wird
+            if (tabName === 'users') loadUsers();
+            if (tabName === 'appointments') loadAppointments();
+            if (tabName === 'connection') loadSystemInfo();
+        }
+
+        // Initialisierung
+        document.addEventListener('DOMContentLoaded', function() {
+            loadOverview();
+            updateLastUpdate();
+            
+            // Auto-Refresh alle 30 Sekunden
+            setInterval(() => {
+                loadOverview();
+                updateLastUpdate();
+            }, 30000);
+        });
+
+        function updateLastUpdate() {
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleString('de-DE');
+        }
+
+        // Übersicht laden
+        async function loadOverview() {
+            try {
+                const response = await fetch('/database/api/users');
+                const data = await response.json();
+                
+                document.getElementById('userCount').textContent = data.length || 0;
+                document.getElementById('activeUserCount').textContent = 
+                    data ? data.filter(u => u.isActive).length : 0;
+                
+                // Termine laden für Statistik
+                try {
+                    const appointmentResponse = await fetch('/database/api/appointments');
+                    const appointmentData = await appointmentResponse.json();
+                    document.getElementById('appointmentCount').textContent = appointmentData.length || 0;
+                    
+                    // Heutige Termine zählen
+                    const today = new Date().toDateString();
+                    const todayCount = appointmentData ? 
+                        appointmentData.filter(a => 
+                            new Date(a.startDateTime).toDateString() === today
+                        ).length : 0;
+                    document.getElementById('todayAppointments').textContent = todayCount;
+                } catch (e) {
+                    document.getElementById('appointmentCount').textContent = '0';
+                    document.getElementById('todayAppointments').textContent = '0';
+                }
+                
+                document.getElementById('connectionStatus').innerHTML = 'Verbunden ✅';
+            } catch (error) {
+                document.getElementById('connectionStatus').innerHTML = 'Fehler ❌';
+                console.error('Fehler beim Laden der Übersicht:', error);
+            }
+        }
+
+        // Benutzer laden
+        async function loadUsers() {
+            const content = document.getElementById('usersContent');
+            content.innerHTML = '<div class="loading"><div class="spinner"></div><p>Lade Benutzer...</p></div>';
+            
+            try {
+                const response = await fetch('/database/api/users');
+                const data = await response.json();
+                usersData = data || [];
+                
+                if (usersData.length === 0) {
+                    content.innerHTML = '<div class="no-data">Keine Benutzer gefunden</div>';
+                    return;
+                }
+                
+                renderUsersTable(usersData);
+            } catch (error) {
+                content.innerHTML = '<div class="error">Fehler beim Laden der Benutzer: ' + error.message + '</div>';
+            }
+        }
+
+        function renderUsersTable(users) {
+            const content = document.getElementById('usersContent');
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Benutzername</th>
+                            <th>E-Mail</th>
+                            <th>Name</th>
+                            <th>Rolle</th>
+                            <th>Status</th>
+                            <th>Erstellt</th>
+                            <th>Letzter Login</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            users.forEach(user => {
+                html += `
+                    <tr>
+                        <td>${user.id}</td>
+                        <td><strong>${user.username}</strong></td>
+                        <td>${user.email}</td>
+                        <td>${user.name || '-'}</td>
+                        <td><span class="badge ${user.role?.toLowerCase() || 'user'}">${user.role || 'USER'}</span></td>
+                        <td><span class="badge ${user.isActive ? 'active' : 'inactive'}">${user.isActive ? 'Aktiv' : 'Inaktiv'}</span></td>
+                        <td>${user.createdAt ? new Date(user.createdAt).toLocaleDateString('de-DE') : '-'}</td>
+                        <td>${user.lastLogin ? new Date(user.lastLogin).toLocaleDateString('de-DE') : 'Nie'}</td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            content.innerHTML = html;
+        }
+
+        // Termine laden
+        async function loadAppointments() {
+            const content = document.getElementById('appointmentsContent');
+            content.innerHTML = '<div class="loading"><div class="spinner"></div><p>Lade Termine...</p></div>';
+            
+            try {
+                const response = await fetch('/database/api/appointments');
+                const data = await response.json();
+                appointmentsData = data || [];
+                
+                if (appointmentsData.length === 0) {
+                    content.innerHTML = '<div class="no-data">Keine Termine gefunden</div>';
+                    return;
+                }
+                
+                renderAppointmentsTable(appointmentsData);
+            } catch (error) {
+                content.innerHTML = '<div class="error">Fehler beim Laden der Termine: ' + error.message + '</div>';
+            }
+        }
+
+        function renderAppointmentsTable(appointments) {
+            const content = document.getElementById('appointmentsContent');
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Titel</th>
+                            <th>Beschreibung</th>
+                            <th>Start</th>
+                            <th>Ende</th>
+                            <th>Ort</th>
+                            <th>Benutzer</th>
+                            <th>Erstellt</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            appointments.forEach(apt => {
+                html += `
+                    <tr>
+                        <td>${apt.id}</td>
+                        <td><strong>${apt.title}</strong></td>
+                        <td>${apt.description ? apt.description.substring(0, 50) + '...' : '-'}</td>
+                        <td>${apt.startDateTime ? new Date(apt.startDateTime).toLocaleString('de-DE') : '-'}</td>
+                        <td>${apt.endDateTime ? new Date(apt.endDateTime).toLocaleString('de-DE') : '-'}</td>
+                        <td>${apt.location || '-'}</td>
+                        <td>${apt.userId || '-'}</td>
+                        <td>${apt.createdAt ? new Date(apt.createdAt).toLocaleDateString('de-DE') : '-'}</td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            content.innerHTML = html;
+        }
+
+        // System-Info laden
+        async function loadSystemInfo() {
+            const content = document.getElementById('systemInfo');
+            content.innerHTML = '<div class="loading"><div class="spinner"></div><p>Lade System-Informationen...</p></div>';
+            
+            try {
+                // Actuator Health Check
+                const healthResponse = await fetch('/actuator/health');
+                const healthData = await healthResponse.json();
+                
+                let html = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Komponente</th>
+                                <th>Status</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Anwendung</strong></td>
+                                <td><span class="badge ${healthData.status === 'UP' ? 'active' : 'inactive'}">${healthData.status}</span></td>
+                                <td>Spring Boot Application</td>
+                            </tr>
+                `;
+                
+                if (healthData.components) {
+                    Object.entries(healthData.components).forEach(([key, value]) => {
+                        html += `
+                            <tr>
+                                <td>${key}</td>
+                                <td><span class="badge ${value.status === 'UP' ? 'active' : 'inactive'}">${value.status}</span></td>
+                                <td>${JSON.stringify(value.details || {})}</td>
+                            </tr>
+                        `;
+                    });
+                }
+                
+                html += '</tbody></table>';
+                content.innerHTML = html;
+                
+            } catch (error) {
+                content.innerHTML = '<div class="error">Fehler beim Laden der System-Informationen: ' + error.message + '</div>';
+            }
+        }
+
+        // Such-Funktionen
+        function filterUsers() {
+            const searchTerm = document.getElementById('userSearch').value.toLowerCase();
+            const filteredUsers = usersData.filter(user => 
+                user.username.toLowerCase().includes(searchTerm) ||
+                user.email.toLowerCase().includes(searchTerm) ||
+                (user.name && user.name.toLowerCase().includes(searchTerm))
+            );
+            renderUsersTable(filteredUsers);
+        }
+
+        function filterAppointments() {
+            const searchTerm = document.getElementById('appointmentSearch').value.toLowerCase();
+            const filteredAppointments = appointmentsData.filter(apt => 
+                apt.title.toLowerCase().includes(searchTerm) ||
+                (apt.description && apt.description.toLowerCase().includes(searchTerm)) ||
+                (apt.location && apt.location.toLowerCase().includes(searchTerm))
+            );
+            renderAppointmentsTable(filteredAppointments);
+        }
+    </script>
+</body>
+</html>

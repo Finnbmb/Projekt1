@@ -1,0 +1,27 @@
+# Entwicklungs-Konfiguration - H2 Database
+server.port=8080
+
+# H2 Database für lokale Entwicklung
+spring.datasource.url=jdbc:h2:file:./data/terminkalender;DB_CLOSE_ON_EXIT=FALSE;AUTO_RECONNECT=TRUE
+spring.datasource.driver-class-name=org.h2.Driver
+spring.datasource.username=sa
+spring.datasource.password=password
+
+# H2 Console aktivieren
+spring.h2.console.enabled=true
+spring.h2.console.path=/h2-console
+spring.h2.console.settings.web-allow-others=true
+
+# JPA/Hibernate Konfiguration für H2
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.H2Dialect
+spring.jpa.properties.hibernate.format_sql=true
+
+# Logging für Development
+logging.level.org.springframework=DEBUG
+logging.level.de.swtp1.terminkalender=DEBUG
+logging.pattern.console=%d{yyyy-MM-dd HH:mm:ss} - %msg%n
+
+# Management Endpoints (Actuator) für Development
+management.endpoints.web.exposure.include=health,info,metrics,env,beans

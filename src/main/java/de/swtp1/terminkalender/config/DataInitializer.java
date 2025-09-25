@@ -8,6 +8,7 @@ import de.swtp1.terminkalender.service.HolidayService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
@@ -15,9 +16,10 @@ import java.time.Year;
 
 /**
  * Datenbank-Initialisierung mit Testdaten
- * Für Entwicklung und Testing
+ * Nur für Entwicklung und Testing - nicht in Produktion
  */
 @Configuration
+@Profile("!prod")  // Läuft NICHT im Produktionsprofil
 public class DataInitializer {
 
     @Bean
@@ -26,10 +28,6 @@ public class DataInitializer {
                                     HolidayService holidayService,
                                     PasswordEncoder passwordEncoder) {
         return args -> {
-            // Initialisiere Feiertage für aktuelles Jahr
-            int currentYear = Year.now().getValue();
-            holidayService.initializeGermanHolidays(currentYear);
-            
             // Prüfe ob bereits Daten vorhanden sind
             if (userRepository.count() > 0) {
                 System.out.println("✅ Daten bereits vorhanden - überspringe Initialisierung");
@@ -37,6 +35,10 @@ public class DataInitializer {
             }
             
             System.out.println("🔄 Erstmalige Dateninitialisierung...");
+            
+            // Feiertage-Initialisierung temporär deaktiviert für schnelleren Start
+            // int currentYear = Year.now().getValue();
+            // holidayService.initializeGermanHolidays(currentYear);
             
             // Test-Benutzer erstellen mit erweiterten Feldern
             User testUser = new User("testuser", "test@example.com", "Test Benutzer");

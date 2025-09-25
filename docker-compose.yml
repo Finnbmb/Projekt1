@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - DATABASE_URL=jdbc:mysql://mysql:3306/terminkalender?useSSL=false&serverTimezone=UTC
+      - DATABASE_USERNAME=terminkalender_user
+      - DATABASE_PASSWORD=terminkalender_password
+    depends_on:
+      - mysql
+    networks:
+      - terminkalender-network
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=root_password
+      - MYSQL_DATABASE=terminkalender
+      - MYSQL_USER=terminkalender_user
+      - MYSQL_PASSWORD=terminkalender_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - terminkalender-network
+
+  # Optional: phpMyAdmin für Database Management
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    environment:
+      - PMA_HOST=mysql
+      - PMA_USER=terminkalender_user
+      - PMA_PASSWORD=terminkalender_password
+    ports:
+      - "8081:80"
+    depends_on:
+      - mysql
+    networks:
+      - terminkalender-network
+
+volumes:
+  mysql_data:
+
+networks:
+  terminkalender-network:
+    driver: bridge
