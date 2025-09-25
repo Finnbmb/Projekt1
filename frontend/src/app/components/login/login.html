@@ -1,11 +1,27 @@
 <div class="login-container">
   <!-- LOGIN FORM -->
   @if (!showRegister() && !showForgotPassword()) {
-    <mat-card class="login-card">
-      <mat-card-header>
-        <mat-card-title>Terminkalender - Anmeldung</mat-card-title>
-        <mat-card-subtitle>Bitte melden Sie sich mit Ihren Anmeldedaten an</mat-card-subtitle>
-      </mat-card-header>
+    <div class="login-wrapper">
+      <!-- Hero Section -->
+      <div class="login-hero">
+        <div class="brand-section">
+          <div class="brand-icon-wrapper">
+            <mat-icon class="brand-icon">event_note</mat-icon>
+          </div>
+          <h1 class="brand-title">Terminkalender</h1>
+          <p class="brand-subtitle">Ihre persönliche Terminverwaltung</p>
+        </div>
+      </div>
+      
+      <!-- Login Card -->
+      <mat-card class="login-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon class="login-icon">login</mat-icon>
+            Anmelden
+          </mat-card-title>
+          <mat-card-subtitle>Willkommen zurück! Melden Sie sich an, um fortzufahren.</mat-card-subtitle>
+        </mat-card-header>
     
     <mat-card-content>
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
@@ -40,39 +56,62 @@
       </form>
     </mat-card-content>
     
-    <mat-card-actions align="end">
-      <button mat-raised-button 
-              color="primary" 
-              type="submit" 
-              [disabled]="isLoading()"
-              (click)="onSubmit()"
-              class="login-button">
-        @if (isLoading()) {
-          <mat-spinner diameter="20" class="spinner-inline"></mat-spinner>
-          Anmeldung läuft...
-        } @else {
-          Anmelden
-        }
-      </button>
-    </mat-card-actions>
-    
-      <!-- Additional Actions -->
-      <mat-card-content class="additional-actions">
-        <div class="register-link">
-          <p>Noch kein Konto? <button type="button" class="link-button" (click)="showRegisterForm()">Jetzt registrieren</button></p>
-          <p><button type="button" class="link-button" (click)="showForgotPasswordForm()">🔑 Passwort vergessen?</button></p>
-        </div>
-      </mat-card-content>
-    </mat-card>
+        <mat-card-actions class="login-actions">
+          <button mat-raised-button 
+                  type="submit" 
+                  [disabled]="isLoading()"
+                  (click)="onSubmit()"
+                  class="login-button primary-btn">
+            @if (isLoading()) {
+              <mat-spinner diameter="20" class="spinner-inline"></mat-spinner>
+              Anmeldung läuft...
+            } @else {
+              <mat-icon>login</mat-icon>
+              Anmelden
+            }
+          </button>
+        </mat-card-actions>
+        
+        <!-- Additional Actions -->
+        <mat-card-content class="additional-actions">
+          <div class="action-links">
+            <button type="button" class="link-button register-btn" (click)="showRegisterForm()">
+              <mat-icon>person_add</mat-icon>
+              Noch kein Konto? Jetzt registrieren
+            </button>
+            <button type="button" class="link-button forgot-btn" (click)="showForgotPasswordForm()">
+              <mat-icon>lock_reset</mat-icon>
+              Passwort vergessen?
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
   }
 
   <!-- Register Form -->
   @if (showRegister()) {
-    <mat-card class="login-card register-card">
-      <mat-card-header>
-        <mat-card-title>Terminkalender - Registrierung</mat-card-title>
-        <mat-card-subtitle>Erstellen Sie ein neues Konto</mat-card-subtitle>
-      </mat-card-header>
+    <div class="login-wrapper">
+      <!-- Hero Section -->
+      <div class="login-hero register-hero">
+        <div class="brand-section">
+          <div class="brand-icon-wrapper">
+            <mat-icon class="brand-icon">person_add</mat-icon>
+          </div>
+          <h1 class="brand-title">Konto erstellen</h1>
+          <p class="brand-subtitle">Werden Sie Teil unserer Terminkalender-Community</p>
+        </div>
+      </div>
+      
+      <!-- Register Card -->
+      <mat-card class="login-card register-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon class="login-icon">how_to_reg</mat-icon>
+            Registrierung
+          </mat-card-title>
+          <mat-card-subtitle>Füllen Sie die Informationen aus, um Ihr Konto zu erstellen</mat-card-subtitle>
+        </mat-card-header>
       
       <mat-card-content>
         <form [formGroup]="registerForm" (ngSubmit)="onRegister()" class="login-form">
@@ -130,25 +169,51 @@
         </form>
       </mat-card-content>
       
-      <mat-card-actions align="end">
-        <button mat-button (click)="hideRegisterForm()">Abbrechen</button>
-        <button mat-raised-button 
-                color="primary" 
-                [disabled]="isLoading()"
-                (click)="onRegister()">
-          📝 Registrieren
-        </button>
-      </mat-card-actions>
-    </mat-card>
+        <mat-card-actions class="register-actions">
+          <button mat-stroked-button (click)="hideRegisterForm()" class="cancel-btn">
+            <mat-icon>arrow_back</mat-icon>
+            Zurück
+          </button>
+          <button mat-raised-button 
+                  [disabled]="isLoading()"
+                  (click)="onRegister()"
+                  class="register-button primary-btn">
+            @if (isLoading()) {
+              <mat-spinner diameter="20" class="spinner-inline"></mat-spinner>
+              Registrierung läuft...
+            } @else {
+              <mat-icon>how_to_reg</mat-icon>
+              Registrieren
+            }
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
   }
 
   <!-- Forgot Password Form -->
   @if (showForgotPassword()) {
-    <mat-card class="login-card forgot-card">
-      <mat-card-header>
-        <mat-card-title>Passwort zurücksetzen</mat-card-title>
-        <mat-card-subtitle>Geben Sie Ihre E-Mail-Adresse ein</mat-card-subtitle>
-      </mat-card-header>
+    <div class="login-wrapper">
+      <!-- Hero Section -->
+      <div class="login-hero forgot-hero">
+        <div class="brand-section">
+          <div class="brand-icon-wrapper">
+            <mat-icon class="brand-icon">lock_reset</mat-icon>
+          </div>
+          <h1 class="brand-title">Passwort vergessen?</h1>
+          <p class="brand-subtitle">Kein Problem! Wir helfen Ihnen dabei, wieder Zugang zu erhalten</p>
+        </div>
+      </div>
+      
+      <!-- Forgot Password Card -->
+      <mat-card class="login-card forgot-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon class="login-icon">email</mat-icon>
+            Passwort zurücksetzen
+          </mat-card-title>
+          <mat-card-subtitle>Geben Sie Ihre E-Mail-Adresse ein, um einen Reset-Link zu erhalten</mat-card-subtitle>
+        </mat-card-header>
       
       <mat-card-content>
         <form [formGroup]="forgotPasswordForm" (ngSubmit)="onForgotPassword()" class="login-form">
@@ -177,15 +242,25 @@
         </form>
       </mat-card-content>
       
-      <mat-card-actions align="end">
-        <button mat-button (click)="hideForgotPasswordForm()">Abbrechen</button>
-        <button mat-raised-button 
-                color="primary" 
-                [disabled]="isLoading()"
-                (click)="onForgotPassword()">
-          🔑 Passwort zurücksetzen
-        </button>
-      </mat-card-actions>
-    </mat-card>
+        <mat-card-actions class="forgot-actions">
+          <button mat-stroked-button (click)="hideForgotPasswordForm()" class="cancel-btn">
+            <mat-icon>arrow_back</mat-icon>
+            Zurück
+          </button>
+          <button mat-raised-button 
+                  [disabled]="isLoading()"
+                  (click)="onForgotPassword()"
+                  class="reset-button primary-btn">
+            @if (isLoading()) {
+              <mat-spinner diameter="20" class="spinner-inline"></mat-spinner>
+              Wird gesendet...
+            } @else {
+              <mat-icon>send</mat-icon>
+              Reset-Link senden
+            }
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
   }
 </div>

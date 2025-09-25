@@ -1,67 +1,88 @@
 <div class="calendar-view-container">
-  <!-- Toolbar -->
-  <mat-toolbar color="primary">
-    <button mat-icon-button (click)="goBack()">
-      <mat-icon>arrow_back</mat-icon>
-    </button>
-    <span>📅 Kalender</span>
-    <span class="spacer"></span>
-    <button mat-raised-button color="accent" (click)="openCreateDialog()">
-      <mat-icon>add</mat-icon>
-      Neuer Termin
-    </button>
-  </mat-toolbar>
-
-  <!-- Calendar Header -->
-  <div class="calendar-header">
-    <div class="calendar-navigation">
-      <button mat-icon-button (click)="previousPeriod()" matTooltip="Vorheriger Zeitraum">
-        <mat-icon>chevron_left</mat-icon>
-      </button>
-      
-      <h2 class="calendar-title">{{ getViewTitle() }}</h2>
-      
-      <button mat-icon-button (click)="nextPeriod()" matTooltip="Nächster Zeitraum">
-        <mat-icon>chevron_right</mat-icon>
-      </button>
-      
-      <button mat-button (click)="goToToday()" class="today-btn">
-        <mat-icon>today</mat-icon>
-        Heute
-      </button>
+  <!-- Modern Toolbar -->
+  <div class="calendar-toolbar">
+    <div class="toolbar-content">
+      <div class="toolbar-left">
+        <button mat-icon-button (click)="goBack()" class="back-btn">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+        <div class="calendar-brand">
+          <mat-icon class="calendar-brand-icon">calendar_month</mat-icon>
+          <h1 class="calendar-brand-title">Kalender</h1>
+        </div>
+      </div>
+      <div class="toolbar-right">
+        <button mat-raised-button (click)="openCreateDialog()" class="create-btn">
+          <mat-icon>add_circle</mat-icon>
+          Neuer Termin
+        </button>
+      </div>
     </div>
+  </div>
 
-    <!-- View Toggle -->
-    <mat-button-toggle-group 
-      [value]="currentView()" 
-      (change)="setView($event.value)"
-      aria-label="Kalenderansicht wählen">
-      <mat-button-toggle value="month" matTooltip="Monatsansicht">
-        <mat-icon>calendar_view_month</mat-icon>
-        Monat
-      </mat-button-toggle>
-      <mat-button-toggle value="week" matTooltip="Wochenansicht">
-        <mat-icon>calendar_view_week</mat-icon>
-        Woche
-      </mat-button-toggle>
-      <mat-button-toggle value="day" matTooltip="Tagesansicht">
-        <mat-icon>view_day</mat-icon>
-        Tag
-      </mat-button-toggle>
-    </mat-button-toggle-group>
+  <!-- Calendar Controls -->
+  <div class="calendar-controls">
+    <div class="controls-container">
+      <!-- Navigation Section -->
+      <div class="navigation-section">
+        <div class="nav-controls">
+          <button mat-icon-button (click)="previousPeriod()" matTooltip="Vorheriger Zeitraum" class="nav-btn">
+            <mat-icon>chevron_left</mat-icon>
+          </button>
+          
+          <div class="current-period">
+            <h2 class="period-title">{{ getViewTitle() }}</h2>
+          </div>
+          
+          <button mat-icon-button (click)="nextPeriod()" matTooltip="Nächster Zeitraum" class="nav-btn">
+            <mat-icon>chevron_right</mat-icon>
+          </button>
+        </div>
+        
+        <button mat-stroked-button (click)="goToToday()" class="today-btn">
+          <mat-icon>today</mat-icon>
+          Heute
+        </button>
+      </div>
 
-    <!-- Date Picker -->
-    <mat-form-field appearance="outline" class="date-picker">
-      <mat-label>Datum wählen</mat-label>
-      <input 
-        matInput 
-        [matDatepicker]="picker" 
-        [value]="currentDate()" 
-        (dateChange)="onDateSelected($event.value)"
-        readonly>
-      <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-      <mat-datepicker #picker></mat-datepicker>
-    </mat-form-field>
+      <!-- View Controls -->
+      <div class="view-controls">
+        <!-- View Toggle -->
+        <div class="view-toggle">
+          <mat-button-toggle-group 
+            [value]="currentView()" 
+            (change)="setView($event.value)"
+            aria-label="Kalenderansicht wählen"
+            class="view-toggle-group">
+            <mat-button-toggle value="month" matTooltip="Monatsansicht">
+              <mat-icon>calendar_view_month</mat-icon>
+              <span class="toggle-text">Monat</span>
+            </mat-button-toggle>
+            <mat-button-toggle value="week" matTooltip="Wochenansicht">
+              <mat-icon>calendar_view_week</mat-icon>
+              <span class="toggle-text">Woche</span>
+            </mat-button-toggle>
+            <mat-button-toggle value="day" matTooltip="Tagesansicht">
+              <mat-icon>view_day</mat-icon>
+              <span class="toggle-text">Tag</span>
+            </mat-button-toggle>
+          </mat-button-toggle-group>
+        </div>
+
+        <!-- Date Picker -->
+        <mat-form-field appearance="outline" class="date-picker-field">
+          <mat-label>Datum wählen</mat-label>
+          <input 
+            matInput 
+            [matDatepicker]="picker" 
+            [value]="currentDate()" 
+            (dateChange)="onDateSelected($event.value)"
+            readonly>
+          <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-datepicker #picker></mat-datepicker>
+        </mat-form-field>
+      </div>
+    </div>
   </div>
 
   <!-- Loading Spinner -->
@@ -95,8 +116,9 @@
           <div 
             *ngFor="let appointment of day.appointments | slice:0:3" 
             class="appointment-preview"
-            [style.border-left-color]="getPriorityColor(appointment.priority)"
-            matTooltip="{{ appointment.title }} - {{ formatTime(appointment.startDateTime) }}">
+            [class]="'priority-' + appointment.priority"
+            matTooltip="{{ appointment.title }} - {{ formatTime(appointment.startDateTime) }}"
+            (click)="onAppointmentClick($event, appointment)">
             <span class="appointment-time">{{ formatTime(appointment.startDateTime) }}</span>
             <span class="appointment-title">{{ appointment.title }}</span>
           </div>
@@ -246,6 +268,7 @@
     <div class="appointment-form-container" (click)="$event.stopPropagation()">
       <app-appointment-form
         [initialDate]="selectedDate()"
+        [appointment]="selectedAppointment()"
         (saved)="onAppointmentSaved()"
         (cancelled)="closeAppointmentForm()">
       </app-appointment-form>

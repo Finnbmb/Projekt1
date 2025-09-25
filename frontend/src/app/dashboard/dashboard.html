@@ -1,13 +1,35 @@
 <!-- Dashboard Header -->
-<mat-toolbar color="primary">
-  <span>Terminkalender Dashboard</span>
-  <span class="spacer"></span>
-  <button mat-icon-button [matMenuTriggerFor]="userMenu">
-    <mat-icon>account_circle</mat-icon>
-  </button>
+<div class="hero-section">
+  <div class="hero-content">
+    <div class="hero-header">
+      <div class="brand-section">
+        <div class="brand-icon-wrapper">
+          <mat-icon class="brand-icon">event_note</mat-icon>
+        </div>
+        <div class="brand-info">
+          <h1 class="brand-title">Terminkalender</h1>
+          <p class="brand-subtitle">Ihre persönliche Terminverwaltung</p>
+        </div>
+      </div>
+      <div class="user-section">
+        <div class="user-card">
+          <div class="user-avatar">
+            <mat-icon>person</mat-icon>
+          </div>
+          <div class="user-info">
+            <div class="user-greeting">{{ getWelcomeMessage() }}</div>
+            <div class="current-date">{{ getCurrentDate() }}</div>
+          </div>
+          <button mat-icon-button [matMenuTriggerFor]="userMenu" class="user-menu-btn">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
   <mat-menu #userMenu="matMenu">
-    <div mat-menu-item disabled>
-      <mat-icon>person</mat-icon>
+    <div mat-menu-item disabled class="user-menu-info">
+      <mat-icon>account_circle</mat-icon>
       <span>{{ currentUser()?.username || 'Benutzer' }}</span>
     </div>
     <mat-divider></mat-divider>
@@ -16,73 +38,133 @@
       <span>Abmelden</span>
     </button>
   </mat-menu>
-</mat-toolbar>
+</div>
 
 <!-- Dashboard Content -->
-<div class="container">
-  <div class="header-section">
-    <h1>Dashboard</h1>
-    <p class="date">{{ getCurrentDate() }}</p>
+<div class="dashboard-content">
+
+  <!-- Quick Stats -->
+  <div class="quick-stats">
+    <div class="stat-chip today-chip" (click)="goToAppointments()">
+      <mat-icon>today</mat-icon>
+      <span class="stat-number">{{ todayCount }}</span>
+      <span class="stat-label">Heute</span>
+    </div>
+    <div class="stat-chip week-chip" (click)="goToCalendar()">
+      <mat-icon>date_range</mat-icon>
+      <span class="stat-number">{{ weekCount }}</span>
+      <span class="stat-label">Diese Woche</span>
+    </div>
+    <div class="stat-chip upcoming-chip" (click)="goToAppointments()">
+      <mat-icon>schedule</mat-icon>
+      <span class="stat-number">{{ upcomingCount }}</span>
+      <span class="stat-label">Kommend</span>
+    </div>
   </div>
 
-  <!-- Statistik Cards -->
-  <div class="stats-grid">
-    <mat-card class="stat-card">
-      <mat-card-content>
-        <div class="stat-content">
-          <div class="stat-icon today">
-            <mat-icon>today</mat-icon>
-          </div>
-          <div class="stat-info">
-            <h3>{{ todayCount }}</h3>
-            <p>Termine heute</p>
-          </div>
-        </div>
-      </mat-card-content>
-    </mat-card>
+  <!-- Main Calendar Section -->
+  <div class="main-section">
+    <div class="calendar-preview-section">
+      <div class="section-header">
+        <h2 class="section-title">
+          <mat-icon>calendar_view_month</mat-icon>
+          Kalender
+        </h2>
+        <button mat-button color="primary" (click)="goToCalendar()" class="view-all-btn">
+          <mat-icon>open_in_new</mat-icon>
+          Vollansicht
+        </button>
+      </div>
+      <div class="calendar-card">
+        <mat-card class="calendar-preview">
+          <mat-card-content>
+            <div class="calendar-placeholder">
+              <mat-icon class="calendar-icon">calendar_month</mat-icon>
+              <h3>Kalenderansicht</h3>
+              <p>Klicken Sie hier, um zur vollständigen Kalenderansicht zu gelangen</p>
+              <button mat-raised-button (click)="goToCalendar()" class="calendar-open-btn">
+                <mat-icon>calendar_view_month</mat-icon>
+                Kalender öffnen
+              </button>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
 
-    <mat-card class="stat-card">
-      <mat-card-content>
-        <div class="stat-content">
-          <div class="stat-icon week">
-            <mat-icon>date_range</mat-icon>
-          </div>
-          <div class="stat-info">
-            <h3>{{ weekCount }}</h3>
-            <p>Diese Woche</p>
-          </div>
+    <!-- Quick Actions Sidebar -->
+    <div class="sidebar-section">
+      <div class="quick-actions-compact">
+        <h3 class="sidebar-title">
+          <mat-icon>flash_on</mat-icon>
+          Aktionen
+        </h3>
+        <div class="action-buttons">
+          <button mat-raised-button (click)="createNewAppointment()" class="action-btn primary-btn">
+            <mat-icon>add</mat-icon>
+            Neuer Termin
+          </button>
+          <button mat-stroked-button color="primary" (click)="goToAppointments()" class="action-btn">
+            <mat-icon>list</mat-icon>
+            Verwalten
+          </button>
         </div>
-      </mat-card-content>
-    </mat-card>
-
-    <mat-card class="stat-card">
-      <mat-card-content>
-        <div class="stat-content">
-          <div class="stat-icon upcoming">
-            <mat-icon>schedule</mat-icon>
-          </div>
-          <div class="stat-info">
-            <h3>{{ upcomingCount }}</h3>
-            <p>Kommende Termine</p>
-          </div>
-        </div>
-      </mat-card-content>
-    </mat-card>
+      </div>
+    </div>
   </div>
 
-  <!-- Action Buttons -->
-  <div class="actions-section">
-    <button mat-raised-button color="primary" (click)="createNewAppointment()">
-      <mat-icon>add</mat-icon>
-      Neuen Termin erstellen
-    </button>
-    <button mat-outlined-button (click)="goToAppointments()">
-      <mat-icon>list</mat-icon>
-      Termine verwalten
-    </button>
-    <button mat-outlined-button (click)="goToCalendar()">
-      <mat-icon>calendar_view_month</mat-icon>
-      Kalenderansicht
-    </button>
+  <!-- Today's Appointments Section -->
+  <div class="todays-appointments-section" *ngIf="todaysAppointments.length > 0">
+    <h2 class="section-title">
+      <mat-icon>event_note</mat-icon>
+      Heutige Termine
+    </h2>
+    <div class="appointments-list">
+      <mat-card class="appointment-card" *ngFor="let appointment of todaysAppointments" 
+                (click)="onEditAppointment(appointment)">
+        <mat-card-content>
+          <div class="appointment-content">
+            <div class="appointment-time">
+              <mat-icon>access_time</mat-icon>
+              {{ formatTime(appointment.startDateTime) }}
+            </div>
+            <div class="appointment-details">
+              <div class="appointment-title">{{ appointment.title }}</div>
+              <div class="appointment-location" *ngIf="appointment.location">
+                <mat-icon>location_on</mat-icon>
+                {{ appointment.location }}
+              </div>
+            </div>
+            <div class="appointment-priority">
+              <mat-icon [class.high-priority]="appointment.priority === 'HIGH'"
+                       [class.medium-priority]="appointment.priority === 'MEDIUM'"
+                       [class.low-priority]="appointment.priority === 'LOW'">
+                {{ appointment.priority === 'HIGH' ? 'priority_high' : 
+                   appointment.priority === 'MEDIUM' ? 'flag' : 'low_priority' }}
+              </mat-icon>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="todaysAppointments.length === 0 && !isLoading()">
+    <div class="empty-state-content">
+      <mat-icon class="empty-state-icon">event_available</mat-icon>
+      <h3>Keine Termine heute</h3>
+      <p>Sie haben heute keine Termine geplant. Entspannen Sie sich oder planen Sie neue Termine!</p>
+      <button mat-raised-button color="primary" (click)="createNewAppointment()">
+        <mat-icon>add</mat-icon>
+        Ersten Termin erstellen
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading()">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Termine werden geladen...</p>
   </div>
 </div>

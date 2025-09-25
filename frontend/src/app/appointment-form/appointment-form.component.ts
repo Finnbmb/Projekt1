@@ -448,6 +448,7 @@ export class AppointmentFormComponent implements OnInit {
 
   // Input/Output für Kalenderansicht
   initialDate = input<Date | null>(null);
+  appointment = input<Appointment | null>(null);
   saved = output<void>();
   cancelled = output<void>();
 
@@ -490,6 +491,10 @@ export class AppointmentFormComponent implements OnInit {
       this.isEditing = true;
       this.appointmentId = parseInt(id, 10);
       this.loadAppointment();
+    } else if (this.appointment()) {
+      // Wenn appointment gesetzt ist, verwende die Appointment-Daten für Bearbeitung
+      this.isEditing = true;
+      this.populateForm(this.appointment()!);
     } else if (this.initialDate()) {
       // Wenn initialDate gesetzt ist, verwende dieses Datum
       const date = this.initialDate()!;

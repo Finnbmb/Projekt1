@@ -1,72 +1,87 @@
-<mat-toolbar color="primary">
-  <button mat-icon-button (click)="goBack()">
-    <mat-icon>arrow_back</mat-icon>
-  </button>
-  <span>📅 Termine verwalten</span>
-  <span class="spacer"></span>
-  <button mat-raised-button color="accent" (click)="openCreateDialog()">
-    <mat-icon>add</mat-icon>
-    Neuer Termin
-  </button>
-</mat-toolbar>
+<!-- Modern Header -->
+<div class="appointments-header">
+  <div class="header-content">
+    <div class="header-left">
+      <button mat-icon-button (click)="goBack()" class="back-btn">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <div class="header-title">
+        <div class="title-icon">
+          <mat-icon>event_note</mat-icon>
+        </div>
+        <div>
+          <h1>Terminverwaltung</h1>
+          <p class="subtitle">Verwalten Sie Ihre Termine und Appointments</p>
+        </div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button mat-raised-button (click)="openCreateDialog()" class="create-btn">
+        <mat-icon>add</mat-icon>
+        Neuer Termin
+      </button>
+    </div>
+  </div>
+</div>
 
 <div class="appointments-container">
-  <mat-card *ngIf="isLoading()">
-    <mat-card-content>
-      <div class="loading-container">
-        <mat-spinner></mat-spinner>
-        <p>Termine werden geladen...</p>
-      </div>
-    </mat-card-content>
-  </mat-card>
+  <!-- Loading State -->
+  <div class="loading-container" *ngIf="isLoading()">
+    <mat-spinner></mat-spinner>
+    <p>Termine werden geladen...</p>
+  </div>
 
-  <mat-card *ngIf="!isLoading() && appointments().length === 0">
-    <mat-card-content class="empty-state">
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!isLoading() && appointments().length === 0">
+    <div class="empty-icon">
       <mat-icon>event_busy</mat-icon>
-      <h3>Keine Termine vorhanden</h3>
-      <p>Erstellen Sie Ihren ersten Termin!</p>
-      <button mat-raised-button color="primary" (click)="openCreateDialog()">
-        <mat-icon>add</mat-icon>
-        Termin erstellen
-      </button>
-    </mat-card-content>
-  </mat-card>
+    </div>
+    <h3>Keine Termine vorhanden</h3>
+    <p>Erstellen Sie Ihren ersten Termin und beginnen Sie mit der Terminplanung!</p>
+    <button mat-raised-button (click)="openCreateDialog()" class="create-first-btn">
+      <mat-icon>add</mat-icon>
+      Ersten Termin erstellen
+    </button>
+  </div>
 
+  <!-- Appointments Grid -->
   <div class="appointments-grid" *ngIf="!isLoading() && appointments().length > 0">
-    <mat-card *ngFor="let appointment of appointments()" class="appointment-card">
-      <mat-card-header>
-        <mat-card-title>{{ appointment.title }}</mat-card-title>
-        <mat-card-subtitle>
+    <div *ngFor="let appointment of appointments()" class="appointment-card" (click)="editAppointment(appointment)">
+      <div class="card-header">
+        <div class="appointment-title">{{ appointment.title }}</div>
+        <div class="priority-indicator" [class]="'priority-' + appointment.priority"></div>
+      </div>
+      
+      <div class="card-content">
+        <div class="appointment-time">
           <mat-icon>schedule</mat-icon>
-                              <div class="appointment-time">
-                      {{ formatDateTime(appointment.startDateTime) }} - {{ formatTime(appointment.endDateTime) }}
-                    </div>
-        </mat-card-subtitle>
-      </mat-card-header>
-      <mat-card-content>
-        <p *ngIf="appointment.description">{{ appointment.description }}</p>
-        <div class="appointment-meta">
-          <span *ngIf="appointment.location" class="location">
-            <mat-icon>location_on</mat-icon>
-            {{ appointment.location }}
-          </span>
-          <mat-chip-set>
-            <mat-chip [color]="getPriorityColor(appointment.priority)">
-              {{ getPriorityLabel(appointment.priority) }}
-            </mat-chip>
-          </mat-chip-set>
+          <span>{{ formatDateTime(appointment.startDateTime) }} - {{ formatTime(appointment.endDateTime) }}</span>
         </div>
-      </mat-card-content>
-      <mat-card-actions align="end">
-        <button mat-button color="primary" (click)="editAppointment(appointment)">
+        
+        <div class="appointment-description" *ngIf="appointment.description">
+          {{ appointment.description }}
+        </div>
+        
+        <div class="appointment-location" *ngIf="appointment.location">
+          <mat-icon>location_on</mat-icon>
+          <span>{{ appointment.location }}</span>
+        </div>
+        
+        <div class="appointment-priority">
+          <mat-chip [class]="'priority-chip-' + appointment.priority">
+            {{ getPriorityLabel(appointment.priority) }}
+          </mat-chip>
+        </div>
+      </div>
+      
+      <div class="card-actions" (click)="$event.stopPropagation()">
+        <button mat-icon-button (click)="editAppointment(appointment)" class="edit-btn">
           <mat-icon>edit</mat-icon>
-          Bearbeiten
         </button>
-        <button mat-button color="warn" (click)="deleteAppointment(appointment)">
+        <button mat-icon-button (click)="deleteAppointment(appointment)" class="delete-btn">
           <mat-icon>delete</mat-icon>
-          Löschen
         </button>
-      </mat-card-actions>
-    </mat-card>
+      </div>
+    </div>
   </div>
 </div>

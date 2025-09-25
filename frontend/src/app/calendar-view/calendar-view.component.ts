@@ -80,6 +80,7 @@ export class CalendarViewComponent implements OnInit {
   weekDays = signal<WeekDay[]>([]);
   dayAppointments = signal<Appointment[]>([]);
   selectedDate = signal<Date | null>(null);
+  selectedAppointment = signal<Appointment | null>(null);
   showAppointmentForm = signal<boolean>(false);
 
   // UI Konstanten
@@ -391,6 +392,7 @@ export class CalendarViewComponent implements OnInit {
   closeAppointmentForm() {
     this.showAppointmentForm.set(false);
     this.selectedDate.set(null);
+    this.selectedAppointment.set(null);
   }
 
   onAppointmentSaved() {
@@ -398,9 +400,15 @@ export class CalendarViewComponent implements OnInit {
     this.loadCurrentView(); // Reload current view
   }
 
+  onAppointmentClick(event: Event, appointment: Appointment) {
+    event.stopPropagation(); // Prevent day click event
+    this.editAppointment(appointment);
+  }
+
   async editAppointment(appointment: Appointment) {
-    // Navigate to edit form with appointment ID
-    this.router.navigate(['/appointments/edit', appointment.id]);
+    // Open appointment form in edit mode
+    this.selectedAppointment.set(appointment);
+    this.showAppointmentForm.set(true);
   }
 
   async deleteAppointment(appointment: Appointment) {
