@@ -1,7 +1,7 @@
 # GitHub Copilot Instructions - Terminkalender Application
 
 ## Project Overview
-This is a Spring Boot 3.1.0 calendar/appointment management application developed as part of a Software Engineering course (SWTP1). The project follows a layered architecture with JWT authentication and is designed for easy development with H2 database switching to MySQL in production.
+This is a Spring Boot 3.1.0 calendar/appointment management application developed as part of a Software Engineering course (SWTP1). The project follows a layered architecture with JWT authentication and runs in production with Azure MySQL Flexible Server. The application is fully migrated from H2 to Azure MySQL.
 
 ## Architecture Patterns
 
@@ -29,10 +29,10 @@ This is a Spring Boot 3.1.0 calendar/appointment management application develope
 
 ### Running the Application
 ```bash
-# Development (H2 database)
+# Production (Azure MySQL - Default)
 mvn spring-boot:run
 
-# Production (MySQL with Docker)
+# Alternative: Local Docker MySQL
 mvn clean package
 docker-compose up -d
 
@@ -40,11 +40,12 @@ docker-compose up -d
 ```
 
 ### Database Access
-- **H2 Console** (Dev): http://localhost:8080/h2-console
-  - URL: `jdbc:h2:file:./data/terminkalender`
-  - Username: `sa`, Password: `password`
-- **MySQL** (Prod): Configured via Docker Compose
-- **phpMyAdmin** (Prod): http://localhost:8081
+- **Azure MySQL Database Viewer**: http://localhost:8080/azure-database-viewer.html
+- **Database Controller**: http://localhost:8080/database/view
+- **Database API**: 
+  - Users: http://localhost:8080/database/api/users
+  - Appointments: http://localhost:8080/database/api/appointments
+- **Docker MySQL** (Optional): phpMyAdmin at http://localhost:8081
 
 ### Monitoring & Health Checks
 - **Actuator Health**: http://localhost:8080/actuator/health

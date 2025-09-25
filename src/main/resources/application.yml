@@ -5,9 +5,9 @@ spring:
   application:
     name: terminkalender
   profiles:
-    active: prod  # Azure MySQL als Standard
+    active: prod  # Azure MySQL Production als Standard
 
-# Basis-Logging
+# Production-Ready Logging
 logging:
   level:
     de.swtp1.terminkalender: INFO

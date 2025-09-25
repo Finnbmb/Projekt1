@@ -1,14 +1,15 @@
 # Projekt1 - Terminkalender
-SWT Projekt 1 Terminkalender
+SWT Projekt 1 Terminkalender - **Azure MySQL Production Ready**
 
 ## 🚀 Schnellstart
 
-### Entwicklung (H2 Datenbank)
+### Production (Azure MySQL - Standard)
 ```bash
 mvn spring-boot:run
 ```
+**App startet automatisch mit Azure MySQL Datenbank!**
 
-### Produktion (MySQL mit Docker)
+### Alternative: Lokale Docker-Umgebung
 ```bash
 # Projekt bauen
 mvn clean package
@@ -23,22 +24,23 @@ docker-compose logs -f app
 ## 🛠️ Technologie-Stack
 
 - **Backend**: Java 17, Spring Boot 3.1.0
-- **Database**: H2 (Development), MySQL (Production)
+- **Database**: Azure MySQL Flexible Server (Production)
+- **Authentication**: JWT with HS512
 - **Build**: Maven
 - **Containerization**: Docker & Docker Compose
 - **Monitoring**: Spring Boot Actuator
 
-## 📊 Monitoring & Health Checks
+## 📊 Monitoring & Database Access
 
 - **Health Check**: http://localhost:8080/actuator/health
 - **Metrics**: http://localhost:8080/actuator/metrics
-- **H2 Console** (Dev): http://localhost:8080/h2-console
-- **phpMyAdmin** (Prod): http://localhost:8081
+- **Azure Database Viewer**: http://localhost:8080/azure-database-viewer.html
+- **Database API**: http://localhost:8080/database/view
 
-## 🐳 Docker Commands
+## 🐳 Docker Commands (Optional)
 
 ```bash
-# Build & Start
+# Build & Start (für lokale MySQL Tests)
 docker-compose up --build
 
 # Stop
@@ -48,7 +50,9 @@ docker-compose down
 docker-compose down -v
 ```
 
-## 🔧 Debug Interfaces
+## 🔧 Debug & API Interfaces
 
-- http://localhost:8080/debug-interface.html
+- **Main App**: http://localhost:8080/
+- **Debug Interface**: http://localhost:8080/debug-interface.html
+- **API Testing**: http://localhost:8080/appointment-test.html
 - http://localhost:8080/appointment-test.html
