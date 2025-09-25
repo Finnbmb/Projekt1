@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, input, output } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -259,6 +259,11 @@ export class AppointmentFormComponent implements OnInit {
   private appointmentService = inject(AppointmentService);
   private snackBar = inject(MatSnackBar);
 
+  // Input/Output für Kalenderansicht
+  initialDate = input<Date | null>(null);
+  saved = output<void>();
+  cancelled = output<void>();
+
   appointmentForm: FormGroup;
   isEditing = false;
   isLoading = false;
@@ -298,6 +303,13 @@ export class AppointmentFormComponent implements OnInit {
       this.isEditing = true;
       this.appointmentId = parseInt(id, 10);
       this.loadAppointment();
+    } else if (this.initialDate()) {
+      // Wenn initialDate gesetzt ist, verwende dieses Datum
+      const date = this.initialDate()!;
+      this.appointmentForm.patchValue({
+        startDate: date,
+        endDate: date
+      });
     }
   }
 
@@ -385,7 +397,13 @@ export class AppointmentFormComponent implements OnInit {
     this.appointmentService.createAppointment(appointmentData).subscribe({
       next: () => {
         this.snackBar.open('Termin erfolgreich erstellt', 'Schließen', { duration: 3000 });
-        this.router.navigate(['/appointments']);
+        if (this.initialDate()) {
+          // Wenn von Kalenderansicht aufgerufen, Output-Event auslösen
+          this.saved.emit();
+        } else {
+          // Normale Navigation
+          this.router.navigate(['/appointments']);
+        }
         this.isLoading = false;
       },
       error: (error) => {
@@ -402,7 +420,13 @@ export class AppointmentFormComponent implements OnInit {
     this.appointmentService.updateAppointment(this.appointmentId, appointmentData).subscribe({
       next: () => {
         this.snackBar.open('Termin erfolgreich aktualisiert', 'Schließen', { duration: 3000 });
-        this.router.navigate(['/appointments']);
+        if (this.initialDate()) {
+          // Wenn von Kalenderansicht aufgerufen, Output-Event auslösen
+          this.saved.emit();
+        } else {
+          // Normale Navigation
+          this.router.navigate(['/appointments']);
+        }
         this.isLoading = false;
       },
       error: (error) => {
@@ -420,7 +444,13 @@ export class AppointmentFormComponent implements OnInit {
   }
 
   onCancel(): void {
-    this.router.navigate(['/appointments']);
+    if (this.initialDate()) {
+      // Wenn von Kalenderansicht aufgerufen, Output-Event auslösen
+      this.cancelled.emit();
+    } else {
+      // Normale Navigation
+      this.router.navigate(['/appointments']);
+    }
   }
 
   getFieldError(fieldName: string): string {

@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -32,6 +32,7 @@ export class LoginComponent {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private snackBar = inject(MatSnackBar);
   
   readonly isLoading = this.authService.isLoading;
@@ -61,6 +62,7 @@ export class LoginComponent {
   registerForm: FormGroup = this.fb.group({
     username: ['', [Validators.required, Validators.minLength(3)]],
     email: ['', [Validators.required, Validators.email]],
+    name: ['', [Validators.required, Validators.minLength(2)]],
     password: ['', [Validators.required, Validators.minLength(6)]],
     confirmPassword: ['', [Validators.required]]
   });
@@ -79,8 +81,11 @@ export class LoginComponent {
           this.snackBar.open(`Willkommen, ${response.user.name || response.user.username}!`, 'Schließen', {
             duration: 3000
           });
-          console.log('Navigating to dashboard...');
-          this.router.navigate(['/dashboard']);
+          
+          // Navigate to return URL or dashboard
+          const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
+          console.log('Navigating to:', returnUrl);
+          this.router.navigateByUrl(returnUrl);
         },
         error: (error) => {
           console.error('Login error:', error);
@@ -133,28 +138,33 @@ export class LoginComponent {
     console.log('Form controls status:', {
       username: this.registerForm.get('username')?.valid,
       email: this.registerForm.get('email')?.valid,
+      name: this.registerForm.get('name')?.valid,
       password: this.registerForm.get('password')?.valid,
       confirmPassword: this.registerForm.get('confirmPassword')?.valid
     });
     
     if (this.registerForm.valid) {
-      const { username, email, password, confirmPassword } = this.registerForm.value;
-      console.log('Form data:', { username, email, password: '***', confirmPassword: '***' });
+      const { username, email, name, password, confirmPassword } = this.registerForm.value;
+      console.log('Form data:', { username, email, name, password: '***', confirmPassword: '***' });
       
       if (password !== confirmPassword) {
         this._registerError.set('Passwörter stimmen nicht überein');
         return;
       }
       
-      const registerData: RegisterRequest = { username, email, password, confirmPassword };
+      const registerData: RegisterRequest = { username, email, name, password, confirmPassword };
       console.log('Sending register request to backend:', { ...registerData, password: '***', confirmPassword: '***' });
       
       this.authService.register(registerData).subscribe({
-        next: () => {
-          this.snackBar.open('Registrierung erfolgreich! Bitte melden Sie sich an.', 'Schließen', {
-            duration: 5000
+        next: (response) => {
+          this.snackBar.open(`Registrierung erfolgreich! Willkommen, ${response.user.name || response.user.username}!`, 'Schließen', {
+            duration: 3000
           });
-          this.hideRegisterForm();
+          
+          // Navigate to return URL or dashboard
+          const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
+          console.log('Navigating to:', returnUrl);
+          this.router.navigateByUrl(returnUrl);
         },
         error: (error) => {
           const errorMessage = error.error?.message || 'Registrierung fehlgeschlagen';

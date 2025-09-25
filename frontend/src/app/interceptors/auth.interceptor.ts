@@ -12,8 +12,13 @@ export class AuthInterceptor implements HttpInterceptor {
     // Get the token from the auth service
     const token = this.authService.getToken();
     
-    // If we have a token and the request is to our API, add the Authorization header
-    if (token && req.url.includes('/api/')) {
+    // Don't add Authorization header to auth endpoints (login, register, forgot-password)
+    const isAuthEndpoint = req.url.includes('/api/v1/auth/login') || 
+                          req.url.includes('/api/v1/auth/register') || 
+                          req.url.includes('/api/v1/auth/forgot-password');
+    
+    // If we have a token and the request is to our API (but not auth endpoints), add the Authorization header
+    if (token && req.url.includes('/api/') && !isAuthEndpoint) {
       const authReq = req.clone({
         headers: req.headers.set('Authorization', `Bearer ${token}`)
       });
@@ -22,7 +27,8 @@ export class AuthInterceptor implements HttpInterceptor {
       return next.handle(authReq);
     }
     
-    // If no token or not an API request, proceed without modification
+    // If no token, not an API request, or auth endpoint, proceed without modification
+    console.log('Proceeding without Authorization header for:', req.url);
     return next.handle(req);
   }
 }

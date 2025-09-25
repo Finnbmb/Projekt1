@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrierung Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .form-group { margin: 10px 0; }
+        label { display: block; margin-bottom: 5px; }
+        input { width: 300px; padding: 8px; }
+        button { background: #007bff; color: white; padding: 10px 20px; border: none; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .result { margin: 20px 0; padding: 10px; border-radius: 4px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    </style>
+</head>
+<body>
+    <h1>Registrierung Test</h1>
+    
+    <form id="registerForm">
+        <div class="form-group">
+            <label for="username">Benutzername:</label>
+            <input type="text" id="username" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="email">E-Mail:</label>
+            <input type="email" id="email" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="name">Name:</label>
+            <input type="text" id="name" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="password">Passwort:</label>
+            <input type="password" id="password" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="confirmPassword">Passwort bestätigen:</label>
+            <input type="password" id="confirmPassword" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="federalState">Bundesland:</label>
+            <select id="federalState" required>
+                <option value="">Bitte wählen...</option>
+                <option value="BW">Baden-Württemberg</option>
+                <option value="BY">Bayern</option>
+                <option value="BE">Berlin</option>
+                <option value="BB">Brandenburg</option>
+                <option value="HB">Bremen</option>
+                <option value="HH">Hamburg</option>
+                <option value="HE">Hessen</option>
+                <option value="MV">Mecklenburg-Vorpommern</option>
+                <option value="NI">Niedersachsen</option>
+                <option value="NW">Nordrhein-Westfalen</option>
+                <option value="RP">Rheinland-Pfalz</option>
+                <option value="SL">Saarland</option>
+                <option value="SN">Sachsen</option>
+                <option value="ST">Sachsen-Anhalt</option>
+                <option value="SH">Schleswig-Holstein</option>
+                <option value="TH">Thüringen</option>
+            </select>
+        </div>
+        
+        <button type="submit">Registrieren</button>
+        <button type="button" onclick="testRegistration()">Test mit vorgefüllten Daten</button>
+    </form>
+    
+    <div id="result"></div>
+    
+    <script>
+        const API_BASE = 'http://localhost:8080/api/v1';
+        
+        function showResult(message, isError = false) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `<div class="${isError ? 'error' : 'success'}">${message}</div>`;
+        }
+        
+        function testRegistration() {
+            // Vorgefüllte Testdaten
+            document.getElementById('username').value = 'testuser_' + Date.now();
+            document.getElementById('email').value = 'test_' + Date.now() + '@example.com';
+            document.getElementById('name').value = 'Test Benutzer';
+            document.getElementById('password').value = 'testpass123';
+            document.getElementById('confirmPassword').value = 'testpass123';
+            document.getElementById('federalState').value = 'NW';
+            
+            // Automatisch absenden
+            handleSubmit();
+        }
+        
+        async function handleSubmit() {
+            const userData = {
+                username: document.getElementById('username').value,
+                email: document.getElementById('email').value,
+                name: document.getElementById('name').value,
+                password: document.getElementById('password').value,
+                confirmPassword: document.getElementById('confirmPassword').value,
+                federalState: document.getElementById('federalState').value
+            };
+            
+            console.log('Sending registration data:', { ...userData, password: '***', confirmPassword: '***' });
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        // Bewusst KEIN Authorization Header
+                    },
+                    body: JSON.stringify(userData)
+                });
+                
+                console.log('Response status:', response.status);
+                console.log('Response headers:', [...response.headers.entries()]);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Registration successful:', data);
+                    showResult(`✅ Registrierung erfolgreich! Benutzer: ${data.user.username}, Token erhalten: ${data.token ? 'Ja' : 'Nein'}`);
+                } else {
+                    const errorText = await response.text();
+                    console.error('Registration failed:', response.status, errorText);
+                    showResult(`❌ Registrierung fehlgeschlagen (${response.status}): ${errorText}`, true);
+                }
+            } catch (error) {
+                console.error('Network error:', error);
+                showResult(`❌ Netzwerkfehler: ${error.message}`, true);
+            }
+        }
+        
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            handleSubmit();
+        });
+    </script>
+</body>
+</html>

@@ -164,4 +164,8 @@ export class DashboardComponent implements OnInit {
   goToAppointments(): void {
     this.onViewAllAppointments();
   }
+
+  goToCalendar(): void {
+    this.router.navigate(['/calendar']);
+  }
 }

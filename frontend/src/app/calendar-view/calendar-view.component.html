@@ -1,0 +1,254 @@
+<div class="calendar-view-container">
+  <!-- Toolbar -->
+  <mat-toolbar color="primary">
+    <button mat-icon-button (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <span>📅 Kalender</span>
+    <span class="spacer"></span>
+    <button mat-raised-button color="accent" (click)="openCreateDialog()">
+      <mat-icon>add</mat-icon>
+      Neuer Termin
+    </button>
+  </mat-toolbar>
+
+  <!-- Calendar Header -->
+  <div class="calendar-header">
+    <div class="calendar-navigation">
+      <button mat-icon-button (click)="previousPeriod()" matTooltip="Vorheriger Zeitraum">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+      
+      <h2 class="calendar-title">{{ getViewTitle() }}</h2>
+      
+      <button mat-icon-button (click)="nextPeriod()" matTooltip="Nächster Zeitraum">
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+      
+      <button mat-button (click)="goToToday()" class="today-btn">
+        <mat-icon>today</mat-icon>
+        Heute
+      </button>
+    </div>
+
+    <!-- View Toggle -->
+    <mat-button-toggle-group 
+      [value]="currentView()" 
+      (change)="setView($event.value)"
+      aria-label="Kalenderansicht wählen">
+      <mat-button-toggle value="month" matTooltip="Monatsansicht">
+        <mat-icon>calendar_view_month</mat-icon>
+        Monat
+      </mat-button-toggle>
+      <mat-button-toggle value="week" matTooltip="Wochenansicht">
+        <mat-icon>calendar_view_week</mat-icon>
+        Woche
+      </mat-button-toggle>
+      <mat-button-toggle value="day" matTooltip="Tagesansicht">
+        <mat-icon>view_day</mat-icon>
+        Tag
+      </mat-button-toggle>
+    </mat-button-toggle-group>
+
+    <!-- Date Picker -->
+    <mat-form-field appearance="outline" class="date-picker">
+      <mat-label>Datum wählen</mat-label>
+      <input 
+        matInput 
+        [matDatepicker]="picker" 
+        [value]="currentDate()" 
+        (dateChange)="onDateSelected($event.value)"
+        readonly>
+      <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-datepicker #picker></mat-datepicker>
+    </mat-form-field>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="isLoading()" class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Kalender wird geladen...</p>
+  </div>
+
+  <!-- Month View -->
+  <div *ngIf="currentView() === 'month' && !isLoading()" class="month-view">
+    <div class="month-grid">
+      <!-- Weekday Headers -->
+      <div 
+        *ngFor="let dayName of weekDayNames" 
+        class="weekday-header">
+        {{ dayName }}
+      </div>
+
+      <!-- Calendar Days -->
+      <div 
+        *ngFor="let day of calendarDays()" 
+        class="calendar-day"
+        [class.other-month]="!day.isCurrentMonth"
+        [class.today]="day.isToday"
+        [class.has-appointments]="day.appointments.length > 0"
+        (click)="onDayClick(day)">
+        
+        <div class="day-number">{{ day.date.getDate() }}</div>
+        
+        <div *ngIf="day.appointments.length > 0" class="day-appointments">
+          <div 
+            *ngFor="let appointment of day.appointments | slice:0:3" 
+            class="appointment-preview"
+            [style.border-left-color]="getPriorityColor(appointment.priority)"
+            matTooltip="{{ appointment.title }} - {{ formatTime(appointment.startDateTime) }}">
+            <span class="appointment-time">{{ formatTime(appointment.startDateTime) }}</span>
+            <span class="appointment-title">{{ appointment.title }}</span>
+          </div>
+          <div *ngIf="day.appointments.length > 3" class="more-appointments">
+            +{{ day.appointments.length - 3 }} weitere
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Week View -->
+  <div *ngIf="currentView() === 'week' && !isLoading()" class="week-view">
+    <div class="week-grid">
+      <!-- Time Column -->
+      <div class="time-column">
+        <div class="time-header"></div>
+        <div 
+          *ngFor="let hour of getHoursArray()" 
+          class="time-slot">
+          {{ hour.toString().padStart(2, '0') }}:00
+        </div>
+      </div>
+
+      <!-- Week Days -->
+      <div 
+        *ngFor="let day of weekDays()" 
+        class="week-day-column">
+        
+        <!-- Day Header -->
+        <div class="week-day-header" [class.today]="isTodayDate(day.date)">
+          <div class="day-name">{{ day.dayName.substring(0, 2) }}</div>
+          <div class="day-number">{{ day.dayNumber }}</div>
+        </div>
+
+        <!-- Time Slots -->
+        <div class="week-day-content">
+          <div 
+            *ngFor="let hour of getHoursArray()" 
+            class="week-time-slot"
+            (click)="createAppointmentForDate(day.date)">
+          </div>
+
+          <!-- Appointments -->
+          <div 
+            *ngFor="let appointment of day.appointments" 
+            class="week-appointment"
+            [style.border-left-color]="getPriorityColor(appointment.priority)"
+            [style.top.px]="getAppointmentTop(appointment)"
+            [style.height.px]="getAppointmentHeight(appointment)"
+            matTooltip="{{ appointment.description || 'Kein Beschreibung' }}"
+            (click)="editAppointment(appointment)">
+            
+            <div class="appointment-time">{{ formatTime(appointment.startDateTime) }}</div>
+            <div class="appointment-title">{{ appointment.title }}</div>
+            <div *ngIf="appointment.location" class="appointment-location">
+              <mat-icon>location_on</mat-icon>
+              {{ appointment.location }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Day View -->
+  <div *ngIf="currentView() === 'day' && !isLoading()" class="day-view">
+    <div class="day-container">
+      <!-- Day Header -->
+      <div class="day-header">
+        <h3>{{ getViewTitle() }}</h3>
+        <button mat-raised-button color="primary" (click)="openCreateDialog()">
+          <mat-icon>add</mat-icon>
+          Termin hinzufügen
+        </button>
+      </div>
+
+      <!-- Time Grid -->
+      <div class="day-timeline">
+        <div class="time-column">
+          <div 
+            *ngFor="let hour of getHoursArray()" 
+            class="time-slot">
+            {{ hour.toString().padStart(2, '0') }}:00
+          </div>
+        </div>
+
+        <div class="day-content">
+          <div 
+            *ngFor="let hour of getHoursArray()" 
+            class="day-time-slot"
+            (click)="createAppointmentForDate(currentDate())">
+          </div>
+
+          <!-- Day Appointments -->
+          <div 
+            *ngFor="let appointment of dayAppointments()" 
+            class="day-appointment"
+            [style.border-left-color]="getPriorityColor(appointment.priority)"
+            [style.top.px]="getAppointmentTop(appointment)"
+            [style.height.px]="getAppointmentHeight(appointment)"
+            (click)="editAppointment(appointment)">
+            
+            <div class="appointment-header">
+              <span class="appointment-time">
+                {{ formatTime(appointment.startDateTime) }} - {{ formatTime(appointment.endDateTime) }}
+              </span>
+              <mat-chip [color]="getPriorityColor(appointment.priority)" class="priority-chip">
+                {{ getPriorityLabel(appointment.priority) }}
+              </mat-chip>
+            </div>
+            
+            <h4 class="appointment-title">{{ appointment.title }}</h4>
+            
+            <p *ngIf="appointment.description" class="appointment-description">
+              {{ appointment.description }}
+            </p>
+            
+            <div *ngIf="appointment.location" class="appointment-location">
+              <mat-icon>location_on</mat-icon>
+              {{ appointment.location }}
+            </div>
+
+            <div class="appointment-actions">
+              <button mat-icon-button (click)="editAppointment(appointment); $event.stopPropagation()">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" (click)="deleteAppointment(appointment); $event.stopPropagation()">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="dayAppointments().length === 0" class="empty-day">
+        <mat-icon>event_available</mat-icon>
+        <h3>Keine Termine heute</h3>
+        <p>Klicken Sie auf eine Uhrzeit oder den "Termin hinzufügen" Button, um einen neuen Termin zu erstellen.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Appointment Form Dialog -->
+  <div *ngIf="showAppointmentForm()" class="appointment-form-overlay" (click)="closeAppointmentForm()">
+    <div class="appointment-form-container" (click)="$event.stopPropagation()">
+      <app-appointment-form
+        [initialDate]="selectedDate()"
+        (saved)="onAppointmentSaved()"
+        (cancelled)="closeAppointmentForm()">
+      </app-appointment-form>
+    </div>
+  </div>
+</div>

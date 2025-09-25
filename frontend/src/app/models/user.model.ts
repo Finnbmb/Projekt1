@@ -15,8 +15,10 @@ export interface LoginRequest {
 export interface RegisterRequest {
   username: string;
   email: string;
+  name: string;
   password: string;
   confirmPassword: string;
+  federalState?: string;
 }
 
 export interface LoginResponse {
