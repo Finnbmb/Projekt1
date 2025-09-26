@@ -51,6 +51,9 @@ Der **Terminkalender** ist eine moderne, vollständig ausgestattete Kalender-Web
 ### **Minimum-Anforderungen:**
 - **Java**: JDK 17 oder höher
 - **Maven**: 3.8.0 oder höher
+- **Node.js**: 18.x oder höher
+- **npm**: 9.x oder höher
+- **Angular CLI**: 17.x oder höher
 - **RAM**: 2 GB verfügbarer Arbeitsspeicher
 - **Speicher**: 500 MB freier Festplattenspeicher
 - **Browser**: Chrome 90+, Firefox 88+, Safari 14+, Edge 90+
@@ -58,6 +61,9 @@ Der **Terminkalender** ist eine moderne, vollständig ausgestattete Kalender-Web
 ### **Empfohlene Anforderungen:**
 - **Java**: JDK 21 (LTS)
 - **Maven**: 3.9.x (neueste Version)
+- **Node.js**: 20.x (LTS)
+- **npm**: 10.x (neueste Version)
+- **Angular CLI**: 18.x (neueste Version)
 - **RAM**: 4 GB oder mehr
 - **Speicher**: 2 GB freier Festplattenspeicher
 - **Database**: Azure MySQL Flexible Server (Produktion)
@@ -85,20 +91,49 @@ java -version  # Sollte Java 17+ anzeigen
 mvn -version   # Sollte Maven 3.8+ anzeigen
 ```
 
-### **3. Anwendung starten**
+### **3. Backend starten**
 ```bash
 mvn spring-boot:run
 ```
 
-### **4. Browser öffnen**
+### **4. Frontend starten** (Neues Terminal)
+```bash
+cd frontend
+npm install
+npm start
 ```
+
+### **5. Browser öffnen**
+```
+# Frontend (Hauptanwendung)
+http://localhost:4200
+
+# Backend APIs + Admin Tools
 http://localhost:8080
 ```
 
-### **5. Fertig! 🎉**
-- **Login-Seite**: http://localhost:8080/login.html
-- **Admin-Dashboard**: http://localhost:8080/admin-dashboard.html
-- **System-Monitoring**: http://localhost:8080/system-monitoring.html
+### **6. Fertig! 🎉**
+
+#### **🎯 Hauptanwendung (Angular Frontend)**
+```
+http://localhost:4200
+```
+- **📅 Kalenderansicht** - Interaktive Termin-Übersicht
+- **📝 Terminverwaltung** - CRUD-Operationen für Appointments
+- **� Benutzer-Login** - JWT-basierte Authentifizierung
+- **📱 Responsive Design** - Mobile & Desktop optimiert
+
+#### **🔧 Backend & Admin-Tools**
+```
+http://localhost:8080
+```
+- **🛠️ Admin-Dashboard**: `/admin-dashboard.html`
+- **📊 System-Monitoring**: `/system-monitoring.html`
+- **🗄️ API-Dokumentation**: `/debug-interface.html`
+- **👥 User-Management**: `/user-management.html`
+- **🎄 Feiertage-Viewer**: `/holiday-viewer.html`
+
+> **💡 Wichtig**: Die Hauptanwendung läuft unter **Port 4200** (Angular), die Admin-Tools unter **Port 8080** (Spring Boot).
 
 > **Hinweis**: Beim ersten Start wird automatisch die H2-Datenbank initialisiert und deutsche Feiertage für 2024-2030 generiert.
 
@@ -174,12 +209,76 @@ mvn clean install
 mvn test
 ```
 
-### **Schritt 3: Erste Ausführung**
+### **Schritt 3: Node.js & Angular CLI installieren**
 
-#### **Entwicklungsmodus (H2-Database)**
+#### **Node.js installieren**
+
+**Windows:**
+```powershell
+# Option 1: Download von nodejs.org
+# Besuchen Sie: https://nodejs.org/
+# Laden Sie die LTS-Version herunter
+
+# Option 2: Mit Chocolatey
+choco install nodejs
+
+# Option 3: Mit winget
+winget install OpenJS.NodeJS
+```
+
+**macOS:**
 ```bash
+# Mit Homebrew
+brew install node
+
+# Oder mit MacPorts
+sudo port install nodejs18
+```
+
+**Linux (Ubuntu/Debian):**
+```bash
+# NodeSource Repository
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# Oder mit snap
+sudo snap install node --classic
+```
+
+#### **Angular CLI global installieren**
+```bash
+npm install -g @angular/cli
+
+# Version prüfen
+ng version
+```
+
+### **Schritt 4: Frontend Setup**
+
+#### **Frontend-Abhängigkeiten installieren**
+```bash
+cd frontend
+npm install
+```
+
+#### **Frontend im Entwicklungsmodus starten**
+```bash
+npm start
+# Oder alternativ:
+ng serve
+```
+
+**Frontend läuft dann unter: http://localhost:4200**
+
+### **Schritt 5: Backend starten**
+
+#### **Backend (Spring Boot) starten**
+```bash
+# Im Projekt-Root-Verzeichnis
 mvn spring-boot:run
 ```
+
+**Backend-APIs laufen unter: http://localhost:8080**
 
 #### **Oder: JAR-Datei erstellen und ausführen**
 ```bash
@@ -632,6 +731,245 @@ set DB_USERNAME=produser
 set DB_PASSWORD=securepassword
 set JWT_SECRET=your-production-jwt-secret
 ```
+
+---
+
+## 🎨 Frontend-Entwicklung (Angular)
+
+### **📁 Frontend-Struktur**
+```
+frontend/
+├── src/
+│   ├── app/
+│   │   ├── components/          # Wiederverwendbare Komponenten
+│   │   ├── services/           # API-Services & Business Logic
+│   │   ├── models/             # TypeScript-Interfaces
+│   │   ├── guards/             # Route Guards
+│   │   ├── interceptors/       # HTTP-Interceptors
+│   │   ├── appointments/       # Terminverwaltung
+│   │   ├── calendar-view/      # Kalenderansicht
+│   │   └── dashboard/          # Dashboard
+│   ├── environments/           # Umgebungskonfiguration
+│   └── assets/                # Statische Dateien
+├── angular.json               # Angular CLI Konfiguration
+├── package.json              # NPM-Abhängigkeiten
+└── tsconfig.json            # TypeScript-Konfiguration
+```
+
+### **🔧 Frontend-Entwicklung**
+
+#### **Development Server starten**
+```bash
+cd frontend
+npm start
+
+# Oder mit spezifischen Optionen:
+ng serve --host 0.0.0.0 --port 4200 --open
+```
+
+#### **Production Build erstellen**
+```bash
+npm run build
+
+# Build-Artefakte in: frontend/dist/
+```
+
+#### **Frontend-Tests ausführen**
+```bash
+# Unit Tests
+npm test
+
+# E2E Tests  
+npm run e2e
+
+# Code Coverage
+npm run test:coverage
+```
+
+### **🌐 Frontend-Features**
+
+#### **🎯 Hauptfunktionen**
+- **📅 Interaktive Kalenderansicht** (Monat/Woche/Tag)
+- **📝 Terminverwaltung** mit CRUD-Operationen
+- **🔐 JWT-basierte Authentifizierung**
+- **📱 Responsive Design** (Mobile-First)
+- **🎨 Material Design** UI-Komponenten
+- **🔔 Real-time Notifications**
+
+#### **🏗️ Architektur-Pattern**
+- **Standalone Components** (Angular 17+)
+- **Signal-basiertes State Management**
+- **Service-orientierte Architektur**
+- **Reactive Forms** mit Validation
+- **HTTP-Interceptors** für API-Kommunikation
+
+#### **📡 API-Integration**
+```typescript
+// Beispiel: Appointment Service
+@Injectable({
+  providedIn: 'root'
+})
+export class AppointmentService {
+  private apiUrl = `${environment.apiUrl}/appointments`;
+
+  getAppointments(): Observable<Appointment[]> {
+    return this.http.get<Appointment[]>(this.apiUrl);
+  }
+
+  createAppointment(appointment: AppointmentRequest): Observable<Appointment> {
+    return this.http.post<Appointment>(this.apiUrl, appointment);
+  }
+}
+```
+
+### **⚙️ Frontend-Konfiguration**
+
+#### **Environment-Konfiguration**
+```typescript
+// src/environments/environment.ts
+export const environment = {
+  production: false,
+  apiUrl: 'http://localhost:8080/api/v1',
+  features: {
+    enableDebugMode: true,
+    enableAnalytics: false
+  }
+};
+
+// src/environments/environment.prod.ts
+export const environment = {
+  production: true,
+  apiUrl: 'https://your-domain.com/api/v1',
+  features: {
+    enableDebugMode: false,
+    enableAnalytics: true
+  }
+};
+```
+
+#### **Proxy-Konfiguration für Development**
+```json
+// proxy.conf.json
+{
+  "/api/*": {
+    "target": "http://localhost:8080",
+    "secure": true,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  }
+}
+```
+
+```bash
+# Mit Proxy starten
+ng serve --proxy-config proxy.conf.json
+```
+
+### **🎭 UI/UX Features**
+
+#### **Material Design Integration**
+```typescript
+// Angular Material Modules
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+```
+
+#### **Responsive Design**
+```scss
+// Mobile-First Approach
+.appointment-grid {
+  display: grid;
+  gap: 1rem;
+  
+  // Mobile (default)
+  grid-template-columns: 1fr;
+  
+  // Tablet
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  // Desktop
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+```
+
+### **🔄 Frontend-Backend Kommunikation**
+
+#### **HTTP-Client Setup**
+```typescript
+// app.config.ts
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideHttpClient(withInterceptors([authInterceptor])),
+    // ... andere Provider
+  ]
+};
+```
+
+#### **Authentication Interceptor**
+```typescript
+// auth.interceptor.ts
+export const authInterceptor: HttpInterceptorFn = (req, next) => {
+  const token = localStorage.getItem('authToken');
+  
+  if (token) {
+    req = req.clone({
+      setHeaders: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+  }
+  
+  return next(req);
+};
+```
+
+### **📱 PWA-Unterstützung (Optional)**
+
+#### **Service Worker aktivieren**
+```bash
+ng add @angular/pwa
+```
+
+#### **PWA-Features**
+- **📱 Installierbare Web-App**
+- **🔄 Offline-Funktionalität**
+- **🔔 Push-Notifications**
+- **📊 App-Shell-Architektur**
+
+### **🐛 Frontend-Debugging**
+
+#### **Development Tools**
+```bash
+# Angular DevTools (Browser Extension)
+# Redux DevTools für State Management
+# Lighthouse für Performance-Analyse
+
+# Debug-Modus aktivieren
+ng serve --source-map --verbose
+```
+
+#### **Error Handling**
+```typescript
+// Global Error Handler
+@Injectable()
+export class GlobalErrorHandler implements ErrorHandler {
+  handleError(error: any): void {
+    console.error('Global error:', error);
+    // Sentry, LogRocket, etc. Integration
+  }
+}
+```
+
+---
+
+## 🚀 Deployment-Optionen
 
 ### **Deployment-Optionen**
 
