@@ -493,8 +493,10 @@ export class AppointmentFormComponent implements OnInit {
       this.loadAppointment();
     } else if (this.appointment()) {
       // Wenn appointment gesetzt ist, verwende die Appointment-Daten für Bearbeitung
+      const appointmentData = this.appointment()!;
       this.isEditing = true;
-      this.populateForm(this.appointment()!);
+      this.appointmentId = appointmentData.id || null;
+      this.populateForm(appointmentData);
     } else if (this.initialDate()) {
       // Wenn initialDate gesetzt ist, verwende dieses Datum
       const date = this.initialDate()!;
