@@ -19,15 +19,21 @@ Die Spezifikation umfasst alle Aspekte der Terminkalender-Anwendung von der Benu
 Die Terminkalender-Anwendung ist eine eigenständige Webanwendung, die es Benutzern ermöglicht, Termine zu verwalten.
 
 ### 2.2 Produktfunktionen
-- Termine erstellen, bearbeiten, löschen
-- Termine nach Datum filtern
-- Kalenderansicht (Monats-/Wochenansicht)
-- Terminerinnerungen
-- Export von Terminen
+- Termine erstellen, bearbeiten, löschen mit erweiterten Metadaten (Priorität, Kategorie, Farbe)
+- Termine nach Datum, Kategorie und Priorität filtern
+- Kalenderansicht (Monats-/Wochen-/Tagesansicht) mit Feiertag-Integration
+- Deutsche Feiertage automatisch im Kalender anzeigen (bundeslandspezifisch)
+- Terminerinnerungen und Benachrichtigungen
+- Benutzer-Authentifizierung mit JWT-Token
+- Benutzerverwaltung für Administratoren
+- Zentrale Admin-Dashboard für Systemverwaltung
+- System-Monitoring und Gesundheitschecks
+- Export von Terminen (geplant)
 
 ### 2.3 Benutzerklassen
-- **Endbenutzer:** Personen, die ihre Termine verwalten möchten
-- **Systemadministrator:** Wartung und Konfiguration der Anwendung
+- **Endbenutzer:** Authentifizierte Personen, die ihre persönlichen Termine verwalten
+- **Systemadministrator:** Wartung, Benutzerverwaltung und Systemkonfiguration über Admin-Dashboard
+- **Entwickler:** Zugriff auf Debug-Interfaces und API-Testing-Tools
 
 ## 3. Funktionale Anforderungen
 
@@ -76,9 +82,59 @@ Die Terminkalender-Anwendung ist eine eigenständige Webanwendung, die es Benutz
 ### 3.3 Suche und Filter
 
 #### FR-007: Termine filtern
-**Beschreibung:** Filterung von Terminen nach Kriterien  
-**Eingabe:** Suchkriterien (Datum, Titel, Beschreibung)  
+**Beschreibung:** Filterung von Terminen nach erweiterten Kriterien  
+**Eingabe:** Suchkriterien (Datum, Titel, Beschreibung, Kategorie, Priorität)  
 **Ausgabe:** Gefilterte Terminliste  
+
+### 3.4 Feiertag-System
+
+#### FR-008: Deutsche Feiertage anzeigen
+**Beschreibung:** Automatische Anzeige deutscher Feiertage im Kalender  
+**Eingabe:** Jahr und optional Bundesland  
+**Ausgabe:** Liste der Feiertage mit Datum und Typ  
+**Vorbedingung:** Feiertag-Daten sind initialisiert  
+**Nachbedingung:** Feiertage werden im Kalender visualisiert  
+
+#### FR-009: Feiertag-Initialisierung
+**Beschreibung:** Automatische Berechnung und Speicherung deutscher Feiertage  
+**Eingabe:** Jahreszeitraum (z.B. 2024-2030)  
+**Ausgabe:** Gespeicherte Feiertage für alle Bundesländer  
+**Nachbedingung:** Oster-Algorithmus berechnet bewegliche Feiertage korrekt  
+
+### 3.5 Benutzerauthentifizierung
+
+#### FR-010: Benutzerregistrierung
+**Beschreibung:** Neue Benutzer können sich registrieren  
+**Eingabe:** Name, E-Mail, Passwort  
+**Ausgabe:** JWT-Token bei erfolgreicher Registrierung  
+**Nachbedingung:** Benutzer ist im System angelegt  
+
+#### FR-011: Benutzeranmeldung
+**Beschreibung:** Registrierte Benutzer können sich anmelden  
+**Eingabe:** E-Mail und Passwort  
+**Ausgabe:** JWT-Token bei erfolgreicher Authentifizierung  
+**Nachbedingung:** Benutzer hat Zugriff auf persönliche Termine  
+
+### 3.6 Benutzerverwaltung (Admin)
+
+#### FR-012: Benutzer löschen
+**Beschreibung:** Administratoren können Benutzerkonten löschen  
+**Eingabe:** Benutzer-ID  
+**Ausgabe:** Bestätigung der Löschung  
+**Vorbedingung:** Admin-Berechtigung  
+**Nachbedingung:** Benutzer und alle Termine sind gelöscht  
+
+#### FR-013: Benutzerliste anzeigen
+**Beschreibung:** Administratoren können alle Benutzer auflisten  
+**Ausgabe:** Liste aller registrierten Benutzer mit Metadaten  
+**Vorbedingung:** Admin-Berechtigung  
+
+### 3.7 System-Dashboard
+
+#### FR-014: Admin-Dashboard
+**Beschreibung:** Zentrale Verwaltungsoberfläche für alle System-Services  
+**Ausgabe:** Übersicht über User, DB, Feiertage, Debug-Tools  
+**Funktionen:** Navigation, Live-Statistiken, Service-Management  
 
 ## 4. Nicht-funktionale Anforderungen
 
@@ -110,8 +166,25 @@ Die Terminkalender-Anwendung ist eine eigenständige Webanwendung, die es Benutz
 - RESTful URL-Struktur
 
 ### 5.2 Datenbank
-- Relationale Datenbank (H2/PostgreSQL)
+- Azure MySQL Flexible Server (Produktion)
+- H2 (Entwicklung/Testing)
 - JPA/Hibernate für Datenzugriff
+- Automatische Feiertag-Initialisierung beim Start
+
+### 5.3 Feiertag-API
+- REST-Endpunkte für deutsche Feiertage
+- Bundeslandspezifische Filterung
+- Easter-Algorithmus für bewegliche Feiertage
+
+### 5.4 Admin-Schnittstellen
+- Benutzer-Management-API
+- System-Monitoring über Spring Boot Actuator
+- Debug-Interfaces für Entwicklung
+
+### 5.5 Frontend-Integration
+- HTML/CSS/JavaScript-basierte Benutzeroberflächen
+- Responsive Design für alle Endgeräte
+- Mehrere Kalenderansichten (Monat/Woche/Tag)
 
 ## 6. Qualitätsanforderungen
 

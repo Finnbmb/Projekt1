@@ -20,3 +20,30 @@ logging:
   info:
     env:
       enabled: true
+
+# Spring Boot Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,env,configprops,beans,mappings
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+    metrics:
+      enabled: true
+  metrics:
+    export:
+      simple:
+        enabled: true
+    web:
+      server:
+        request:
+          autotime:
+            enabled: true
+    jvm:
+      enabled: true
+    system:
+      enabled: true

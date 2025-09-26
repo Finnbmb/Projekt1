@@ -8,10 +8,14 @@
         :root {
             --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            --warning-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-            --danger-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-            --info-gradient: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            --success-gradient: linear-gradient(135deg, #4facfe 0%, #0                <div class="service-actions">
+                    <a href="/system-monitoring.html" class="btn btn-primary">📊 System Monitor</a>
+                    <a href="/system-config.html" class="btn btn-secondary">🔧 Konfiguration</a>
+                    <a href="/actuator/health" class="btn btn-success">💚 Health Check</a>
+                </div> 100%);
+            --warning-gradient: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            --danger-gradient: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            --info-gradient: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
             
             --text-dark: #2c3e50;
             --text-light: #6c757d;
@@ -193,31 +197,39 @@
         .btn-primary {
             background: var(--primary-gradient);
             color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
         }
 
         .btn-secondary {
             background: var(--secondary-gradient);
             color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
         }
 
         .btn-success {
             background: var(--success-gradient);
             color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
         }
 
         .btn-warning {
             background: var(--warning-gradient);
             color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            font-weight: 700;
         }
 
         .btn-danger {
             background: var(--danger-gradient);
             color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
         }
 
         .btn-info {
             background: var(--info-gradient);
             color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            font-weight: 700;
         }
 
         .btn:hover {
@@ -415,7 +427,7 @@
             <!-- Database Management -->
             <div class="service-card">
                 <div class="service-header">
-                    <div class="service-icon" style="background: var(--success-gradient);">🗄️</div>
+                    <div class="service-icon" style="background: var(--info-gradient);">🗄️</div>
                     <div class="service-title">Datenbank-Verwaltung</div>
                 </div>
                 <div class="service-description">
@@ -423,24 +435,24 @@
                 </div>
                 <div class="service-actions">
                     <a href="/azure-database-viewer.html" class="btn btn-success">🌐 DB Viewer</a>
-                    <a href="/database/view" class="btn btn-info">📋 Tabellen</a>
-                    <a href="/database/api/users" class="btn btn-warning">👤 Users API</a>
+                    <a href="/database/view" class="btn btn-primary">📋 Tabellen</a>
+                    <a href="/database/api/users" class="btn btn-secondary">👤 Users API</a>
                 </div>
             </div>
 
             <!-- Holiday Management -->
             <div class="service-card">
                 <div class="service-header">
-                    <div class="service-icon" style="background: var(--warning-gradient);">🎉</div>
+                    <div class="service-icon" style="background: var(--success-gradient);">🎉</div>
                     <div class="service-title">Feiertag-System</div>
                 </div>
                 <div class="service-description">
                     Deutsche Feiertage verwalten und initialisieren. Bundeslandspezifische Feiertage und Kalenderjahre konfigurieren.
                 </div>
                 <div class="service-actions">
-                    <a href="/holiday-viewer.html" class="btn btn-warning">🎄 Holiday Viewer</a>
+                    <a href="/holiday-viewer.html" class="btn btn-primary">🎄 Holiday Viewer</a>
                     <button onclick="initializeHolidays()" class="btn btn-success">⚡ Initialisieren</button>
-                    <button onclick="loadHolidayStats()" class="btn btn-info">📈 Statistiken</button>
+                    <button onclick="loadHolidayStats()" class="btn btn-secondary">📈 Statistiken</button>
                 </div>
             </div>
 
@@ -462,16 +474,16 @@
             <!-- System Monitoring -->
             <div class="service-card">
                 <div class="service-header">
-                    <div class="service-icon" style="background: var(--info-gradient);">📊</div>
+                    <div class="service-icon" style="background: var(--secondary-gradient);">📊</div>
                     <div class="service-title">System-Monitoring</div>
                 </div>
                 <div class="service-description">
                     System-Gesundheit überwachen, Metriken einsehen und Performance-Daten analysieren.
                 </div>
                 <div class="service-actions">
-                    <a href="/actuator/health" class="btn btn-info">💚 Health Check</a>
-                    <a href="/actuator/metrics" class="btn btn-success">📈 Metriken</a>
-                    <a href="/actuator/env" class="btn btn-warning">🔧 Environment</a>
+                    <a href="/system-monitoring.html" class="btn btn-info">� System Monitor</a>
+                    <a href="/actuator/health" class="btn btn-success">� Health Check</a>
+                    <a href="/actuator/metrics" class="btn btn-warning">� Raw Metriken</a>
                 </div>
             </div>
         </div>

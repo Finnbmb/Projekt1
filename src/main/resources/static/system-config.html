@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Configuration - Terminkalender</title>
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --warning-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            --danger-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            
+            --text-dark: #2c3e50;
+            --text-light: #6c757d;
+            --bg-light: #f8f9fa;
+            --border-color: #e9ecef;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--primary-gradient);
+            min-height: 100vh;
+            color: var(--text-dark);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: var(--warning-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .config-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .config-item {
+            background: var(--bg-light);
+            border-radius: 10px;
+            padding: 15px;
+            border-left: 4px solid var(--primary-gradient);
+        }
+
+        .config-key {
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .config-value {
+            color: var(--text-light);
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            word-break: break-all;
+        }
+
+        .back-link {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--primary-gradient);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: var(--text-light);
+        }
+
+        .error {
+            text-align: center;
+            padding: 50px;
+            color: #dc3545;
+            background: #ffe6e6;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 System Configuration</h1>
+            <p>Aktuelle Systemkonfiguration und Umgebungsvariablen</p>
+        </div>
+
+        <div class="config-section">
+            <div class="section-title">
+                🌱 Spring Boot Configuration
+            </div>
+            <div class="config-grid" id="springConfig">
+                <div class="loading">Lade Spring-Konfiguration...</div>
+            </div>
+        </div>
+
+        <div class="config-section">
+            <div class="section-title">
+                💾 Database Configuration
+            </div>
+            <div class="config-grid" id="databaseConfig">
+                <div class="loading">Lade Database-Konfiguration...</div>
+            </div>
+        </div>
+
+        <div class="config-section">
+            <div class="section-title">
+                🔒 Security Configuration
+            </div>
+            <div class="config-grid" id="securityConfig">
+                <div class="loading">Lade Security-Konfiguration...</div>
+            </div>
+        </div>
+
+        <div class="config-section">
+            <div class="section-title">
+                📊 Actuator Endpoints
+            </div>
+            <div class="config-grid" id="actuatorConfig">
+                <div class="loading">Lade Actuator-Konfiguration...</div>
+            </div>
+        </div>
+    </div>
+
+    <a href="/system-monitoring.html" class="back-link">📊 Monitoring</a>
+
+    <script>
+        const ACTUATOR_BASE = '/actuator';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAllConfigurations();
+        });
+
+        async function loadAllConfigurations() {
+            try {
+                await Promise.all([
+                    loadSpringConfig(),
+                    loadDatabaseConfig(),
+                    loadSecurityConfig(),
+                    loadActuatorConfig()
+                ]);
+            } catch (error) {
+                console.error('Error loading configurations:', error);
+            }
+        }
+
+        async function loadSpringConfig() {
+            try {
+                const response = await fetch(`${ACTUATOR_BASE}/env`);
+                const env = await response.json();
+                
+                const springConfig = document.getElementById('springConfig');
+                let html = '';
+
+                // Extract important Spring properties
+                const springProps = {
+                    'Application Name': 'spring.application.name',
+                    'Active Profiles': 'spring.profiles.active',
+                    'Server Port': 'server.port',
+                    'Context Path': 'server.servlet.context-path',
+                    'JPA Show SQL': 'spring.jpa.show-sql',
+                    'JPA DDL Auto': 'spring.jpa.hibernate.ddl-auto'
+                };
+
+                for (const [label, key] of Object.entries(springProps)) {
+                    const value = findPropertyValue(env, key) || 'Not configured';
+                    html += `
+                        <div class="config-item">
+                            <div class="config-key">${label}</div>
+                            <div class="config-value">${value}</div>
+                        </div>
+                    `;
+                }
+
+                springConfig.innerHTML = html;
+            } catch (error) {
+                document.getElementById('springConfig').innerHTML = '<div class="error">Fehler beim Laden der Spring-Konfiguration</div>';
+            }
+        }
+
+        async function loadDatabaseConfig() {
+            try {
+                const response = await fetch(`${ACTUATOR_BASE}/env`);
+                const env = await response.json();
+                
+                const databaseConfig = document.getElementById('databaseConfig');
+                let html = '';
+
+                const dbProps = {
+                    'Database URL': 'spring.datasource.url',
+                    'Database Driver': 'spring.datasource.driver-class-name',
+                    'Database Username': 'spring.datasource.username',
+                    'Connection Pool': 'spring.datasource.hikari.pool-name',
+                    'Max Pool Size': 'spring.datasource.hikari.maximum-pool-size',
+                    'Min Pool Size': 'spring.datasource.hikari.minimum-idle'
+                };
+
+                for (const [label, key] of Object.entries(dbProps)) {
+                    let value = findPropertyValue(env, key) || 'Not configured';
+                    
+                    // Mask sensitive information
+                    if (key.includes('password')) {
+                        value = '***masked***';
+                    } else if (key.includes('url') && value.includes('@')) {
+                        value = value.replace(/\/\/[^:]+:[^@]+@/, '//***:***@');
+                    }
+                    
+                    html += `
+                        <div class="config-item">
+                            <div class="config-key">${label}</div>
+                            <div class="config-value">${value}</div>
+                        </div>
+                    `;
+                }
+
+                databaseConfig.innerHTML = html;
+            } catch (error) {
+                document.getElementById('databaseConfig').innerHTML = '<div class="error">Fehler beim Laden der Database-Konfiguration</div>';
+            }
+        }
+
+        async function loadSecurityConfig() {
+            try {
+                const response = await fetch(`${ACTUATOR_BASE}/env`);
+                const env = await response.json();
+                
+                const securityConfig = document.getElementById('securityConfig');
+                let html = '';
+
+                const securityProps = {
+                    'JWT Secret': 'app.jwt.secret',
+                    'JWT Expiration': 'app.jwt.expiration',
+                    'CORS Enabled': 'app.cors.enabled',
+                    'Security Debug': 'logging.level.org.springframework.security',
+                    'Auth Endpoints': 'app.auth.endpoints'
+                };
+
+                for (const [label, key] of Object.entries(securityProps)) {
+                    let value = findPropertyValue(env, key) || 'Not configured';
+                    
+                    // Mask JWT secret
+                    if (key.includes('secret') && value !== 'Not configured') {
+                        value = '***masked***';
+                    }
+                    
+                    html += `
+                        <div class="config-item">
+                            <div class="config-key">${label}</div>
+                            <div class="config-value">${value}</div>
+                        </div>
+                    `;
+                }
+
+                // Add some hardcoded security info
+                html += `
+                    <div class="config-item">
+                        <div class="config-key">Authentication Type</div>
+                        <div class="config-value">JWT Bearer Token</div>
+                    </div>
+                    <div class="config-item">
+                        <div class="config-key">Session Management</div>
+                        <div class="config-value">STATELESS</div>
+                    </div>
+                    <div class="config-item">
+                        <div class="config-key">CSRF Protection</div>
+                        <div class="config-value">DISABLED (REST API)</div>
+                    </div>
+                `;
+
+                securityConfig.innerHTML = html;
+            } catch (error) {
+                document.getElementById('securityConfig').innerHTML = '<div class="error">Fehler beim Laden der Security-Konfiguration</div>';
+            }
+        }
+
+        async function loadActuatorConfig() {
+            try {
+                const response = await fetch(`${ACTUATOR_BASE}/env`);
+                const env = await response.json();
+                
+                const actuatorConfig = document.getElementById('actuatorConfig');
+                let html = '';
+
+                const actuatorProps = {
+                    'Exposed Endpoints': 'management.endpoints.web.exposure.include',
+                    'Base Path': 'management.endpoints.web.base-path',
+                    'Health Details': 'management.endpoint.health.show-details',
+                    'Health Components': 'management.endpoint.health.show-components',
+                    'Metrics Enabled': 'management.endpoint.metrics.enabled'
+                };
+
+                for (const [label, key] of Object.entries(actuatorProps)) {
+                    const value = findPropertyValue(env, key) || 'Default';
+                    html += `
+                        <div class="config-item">
+                            <div class="config-key">${label}</div>
+                            <div class="config-value">${value}</div>
+                        </div>
+                    `;
+                }
+
+                // Add available endpoints
+                try {
+                    const actuatorResponse = await fetch(`${ACTUATOR_BASE}`);
+                    const actuatorData = await actuatorResponse.json();
+                    
+                    if (actuatorData._links) {
+                        const endpoints = Object.keys(actuatorData._links).filter(key => key !== 'self');
+                        html += `
+                            <div class="config-item">
+                                <div class="config-key">Available Endpoints</div>
+                                <div class="config-value">${endpoints.join(', ')}</div>
+                            </div>
+                        `;
+                    }
+                } catch (e) {
+                    console.warn('Could not load actuator endpoints:', e);
+                }
+
+                actuatorConfig.innerHTML = html;
+            } catch (error) {
+                document.getElementById('actuatorConfig').innerHTML = '<div class="error">Fehler beim Laden der Actuator-Konfiguration</div>';
+            }
+        }
+
+        function findPropertyValue(env, propertyKey) {
+            if (!env.propertySources) return null;
+            
+            for (const source of env.propertySources) {
+                if (source.properties && source.properties[propertyKey]) {
+                    return source.properties[propertyKey].value;
+                }
+            }
+            return null;
+        }
+    </script>
+</body>
+</html>

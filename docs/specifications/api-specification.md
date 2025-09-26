@@ -6,7 +6,8 @@
 - **API Version:** v1
 - **Base URL:** `http://localhost:8080/api/v1`
 - **Content-Type:** `application/json`
-- **Authentication:** JWT Bearer Token (geplant)
+- **Authentication:** JWT Bearer Token (implementiert)
+- **Database:** Azure MySQL Flexible Server (Produktion), H2 (Entwicklung)
 
 ### 1.2 HTTP Status Codes
 | Code | Bedeutung | Verwendung |
@@ -416,4 +417,292 @@ paths:
                   $ref: '#/components/schemas/Appointment'
 ```
 
-Diese API-Spezifikation definiert alle Endpunkte und Datenformate für die Terminkalender-Anwendung und dient als Entwicklungsgrundlage. 📋
+## 3. Authentication API
+
+### 3.1 Benutzer registrieren
+
+```http
+POST /api/v1/auth/register
+```
+
+**Request Body:**
+```json
+{
+  "name": "Max Mustermann",
+  "email": "max@example.com",
+  "password": "securePassword123"
+}
+```
+
+**Response (201 Created):**
+```json
+{
+  "token": "eyJhbGciOiJIUzUxMiJ9...",
+  "user": {
+    "id": 1,
+    "name": "Max Mustermann",
+    "email": "max@example.com"
+  }
+}
+```
+
+### 3.2 Benutzer anmelden
+
+```http
+POST /api/v1/auth/login
+```
+
+**Request Body:**
+```json
+{
+  "email": "max@example.com",
+  "password": "securePassword123"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "token": "eyJhbGciOiJIUzUxMiJ9...",
+  "user": {
+    "id": 1,
+    "name": "Max Mustermann",
+    "email": "max@example.com"
+  }
+}
+```
+
+### 3.3 Alle Benutzer auflisten (Admin)
+
+```http
+GET /api/v1/auth/users
+```
+
+**Headers:**
+```
+Authorization: Bearer <jwt-token>
+```
+
+**Response (200 OK):**
+```json
+[
+  {
+    "id": 1,
+    "name": "Max Mustermann",
+    "email": "max@example.com"
+  },
+  {
+    "id": 2,
+    "name": "Anna Schmidt",
+    "email": "anna@example.com"
+  }
+]
+```
+
+### 3.4 Benutzer löschen (Admin)
+
+```http
+DELETE /api/v1/auth/users/{userId}
+```
+
+**Headers:**
+```
+Authorization: Bearer <jwt-token>
+```
+
+**Response (200 OK):**
+```json
+{
+  "message": "Benutzer erfolgreich gelöscht"
+}
+```
+
+## 4. Holiday API
+
+### 4.1 Feiertage für ein Jahr abrufen
+
+```http
+GET /api/v1/holidays/year/{year}
+```
+
+**Query Parameters:**
+- `state` (optional): Bundesland (BW, BY, BE, BB, HB, HH, HE, MV, NI, NW, RP, SL, SN, ST, SH, TH)
+
+**Response (200 OK):**
+```json
+[
+  {
+    "id": 1,
+    "name": "Neujahr",
+    "date": "2025-01-01",
+    "type": "FEDERAL",
+    "applicableStates": []
+  },
+  {
+    "id": 2,
+    "name": "Heilige Drei Könige",
+    "date": "2025-01-06",
+    "type": "STATE_SPECIFIC",
+    "applicableStates": ["BW", "BY", "ST"]
+  },
+  {
+    "id": 3,
+    "name": "Ostersonntag",
+    "date": "2025-04-20",
+    "type": "RELIGIOUS",
+    "applicableStates": ["BB", "HE"]
+  }
+]
+```
+
+### 4.2 Feiertage für Datumsbereich abrufen
+
+```http
+GET /api/v1/holidays/range
+```
+
+**Query Parameters:**
+- `startDate`: Startdatum (YYYY-MM-DD)
+- `endDate`: Enddatum (YYYY-MM-DD)
+- `state` (optional): Bundesland
+
+**Response (200 OK):**
+```json
+[
+  {
+    "id": 1,
+    "name": "Tag der Deutschen Einheit",
+    "date": "2025-10-03",
+    "type": "FEDERAL",
+    "applicableStates": []
+  }
+]
+```
+
+### 4.3 Feiertage initialisieren (Admin)
+
+```http
+POST /api/v1/holidays/initialize
+```
+
+**Request Body:**
+```json
+{
+  "years": [2025, 2026, 2027, 2028, 2029, 2030]
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "message": "Feiertage für 6 Jahre erfolgreich initialisiert",
+  "totalHolidays": 432
+}
+```
+
+## 5. System Monitoring API
+
+### 5.1 Health Check
+
+```http
+GET /actuator/health
+```
+
+**Response (200 OK):**
+```json
+{
+  "status": "UP",
+  "components": {
+    "db": {
+      "status": "UP",
+      "details": {
+        "database": "MySQL",
+        "validationQuery": "isValid()"
+      }
+    }
+  }
+}
+```
+
+### 5.2 System Metrics
+
+```http
+GET /actuator/metrics
+```
+
+**Response (200 OK):**
+```json
+{
+  "names": [
+    "jvm.memory.used",
+    "jvm.memory.max",
+    "http.server.requests",
+    "system.cpu.usage"
+  ]
+}
+```
+
+## 6. Error Responses
+
+### 6.1 Standard Error Format
+```json
+{
+  "timestamp": "2025-09-26T10:30:00.000Z",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Validation failed for field 'title'",
+  "path": "/api/v1/appointments"
+}
+```
+
+### 6.2 Authentication Error
+```json
+{
+  "timestamp": "2025-09-26T10:30:00.000Z",
+  "status": 401,
+  "error": "Unauthorized",
+  "message": "JWT token is invalid or expired",
+  "path": "/api/v1/appointments"
+}
+```
+
+## 7. Data Models
+
+### 7.1 Appointment Model (Extended)
+```json
+{
+  "id": 1,
+  "title": "Team Meeting",
+  "description": "Weekly team sync meeting",
+  "startDateTime": "2025-07-25T10:00:00",
+  "endDateTime": "2025-07-25T11:00:00",
+  "location": "Conference Room A",
+  "category": "Work",
+  "priority": "HIGH",
+  "colorCode": "#ff5733",
+  "reminderMinutes": 15,
+  "userId": 1
+}
+```
+
+### 7.2 Holiday Model
+```json
+{
+  "id": 1,
+  "name": "Neujahr",
+  "date": "2025-01-01",
+  "type": "FEDERAL",
+  "applicableStates": []
+}
+```
+
+### 7.3 User Model
+```json
+{
+  "id": 1,
+  "name": "Max Mustermann",
+  "email": "max@example.com"
+}
+```
+
+Diese erweiterte API-Spezifikation definiert alle implementierten Endpunkte einschließlich Authentifizierung, Feiertag-System und Admin-Funktionen für die Terminkalender-Anwendung. 📋
